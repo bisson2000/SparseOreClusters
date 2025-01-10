@@ -43,6 +43,7 @@ public class ModConfiguredFeatures {
                 OreConfiguration.target(endReplaceables, ModBlocks.BISMUTH_ORE.get().defaultBlockState())
         );
 
+        // 9 == size of vein
         register(context, OVERWORLD_BISMUTH_ORE_KEY, Feature.ORE, new OreConfiguration(overworldBismuthOres, 9));
         register(context, NETHER_BISMUTH_ORE_KEY, Feature.ORE, new OreConfiguration(netherBismuthOres, 9));
         register(context, END_BISMUTH_ORE_KEY, Feature.ORE, new OreConfiguration(endBismuthOres, 9));
