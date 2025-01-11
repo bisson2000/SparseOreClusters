@@ -3,6 +3,7 @@ package com.bisson2000.largepatchgenerator;
 import com.bisson2000.largepatchgenerator.blocks.ModBlocks;
 import com.bisson2000.largepatchgenerator.item.ModItems;
 import com.bisson2000.largepatchgenerator.worldgen.ModBiomeModifiers;
+import com.bisson2000.largepatchgenerator.worldgen.ModPlacementModifiers;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import org.slf4j.Logger;
 
@@ -47,6 +48,7 @@ public class LargePatchGenerator
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
+        ModPlacementModifiers.register(modEventBus);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);

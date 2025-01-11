@@ -1,15 +1,12 @@
 package com.bisson2000.largepatchgenerator.worldgen;
 
-import com.mojang.logging.LogUtils;
 import com.bisson2000.largepatchgenerator.LargePatchGenerator;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
-import net.minecraft.data.worldgen.features.FeatureUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -17,10 +14,10 @@ import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
-import net.minecraft.world.level.levelgen.placement.CountPlacement;
-import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraft.world.level.levelgen.placement.PlacementModifier;
-import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.placement.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.world.BiomeGenerationSettingsBuilder;
 import net.neoforged.neoforge.common.world.BiomeModifier;
@@ -29,16 +26,9 @@ import net.neoforged.neoforge.common.world.ModifiableBiomeInfo;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Console;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class ModBiomeModifiers {
     public static final ResourceKey<BiomeModifier> ADD_BISMUTH_ORE = registerKey("add_bismuth_ore");
@@ -133,14 +123,37 @@ public class ModBiomeModifiers {
                 return;
             }
 
-            List<PlacementModifier> placementModifierCopy = new java.util.ArrayList<>(replacedFeature.value().placement());
-            for (int placementIndex = 0; placementIndex < placementModifierCopy.size(); ++placementIndex) {
-                if (placementModifierCopy.get(placementIndex).type() == PlacementModifierType.COUNT) { // Number of veins
-                    placementModifierCopy.set(placementIndex, CountPlacement.of(1000000));
-                    break;
+            Set<PlacementModifierType<?>> replacedPlacements = new HashSet<>(Arrays.asList(
+                    PlacementModifierType.COUNT, // Number of veins
+                    PlacementModifierType.FIXED_PLACEMENT,
+                    PlacementModifierType.IN_SQUARE,
+                    ModPlacementModifiers.CENTER_CHUNK_PLACEMENT.get()
+            ));
+
+            // Get the new placement modifier, with a vein of 1
+            List<PlacementModifier> newPlacementModifier = new java.util.ArrayList<>(replacedFeature.value().placement());
+            for (int j =  newPlacementModifier.size() - 1; j >= 0; --j) {
+                if (replacedPlacements.contains(newPlacementModifier.get(j).type())) {
+                    newPlacementModifier.remove(j);
                 }
             }
-            PlacedFeature newPlacedFeature = new PlacedFeature(replacedFeature.value().feature(), placementModifierCopy);
+            newPlacementModifier.add(CountPlacement.of(1));
+            //newPlacementModifier.add(FixedPlacement.of(
+            //        new BlockPos(0, 0, 0)
+            //));
+            //newPlacementModifier.add(InSquarePlacement.spread());
+            newPlacementModifier.add(CenterChunkPlacement.center());
+
+            // make the veins huge
+            ConfiguredFeature<?, ?> newConfiguration = null;
+            if (replacedFeature.value().feature().value().config() instanceof OreConfiguration oreConfiguration) {
+                newConfiguration = new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(oreConfiguration.targetStates, 4, oreConfiguration.discardChanceOnAirExposure));
+            } else {
+                return;
+            }
+
+            // apply
+            PlacedFeature newPlacedFeature = new PlacedFeature(Holder.direct(newConfiguration), newPlacementModifier);
             Holder<PlacedFeature> placedFeatureHolder = Holder.direct(newPlacedFeature);
             builder.getGenerationSettings().getFeatures(decoration).removeIf(s -> s.is(replacedFeature));
             builder.getGenerationSettings().addFeature(decoration, placedFeatureHolder);
