@@ -19,6 +19,18 @@ group = mod_group_id
 
 repositories {
     mavenLocal()
+    // JEI
+    maven {
+        // location of the maven that hosts JEI files since January 2023
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+    }
+
+    // Create
+    maven {
+        name = 'tterrag maven'
+        url = 'https://maven.tterrag.com/'
+    }
 }
 
 base {
@@ -134,6 +146,19 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+    // JEI
+    compileOnly "mezz.jei:jei-$minecraft_version-common-api:$jeiVersion" // required for jei plugin
+
+    // create
+    //implementation fg.deobf("com.simibubi.create:create-${create_minecraft_version}:${create_version}:slim") { transitive = false }
+    //implementation fg.deobf("com.jozufozu.flywheel:flywheel-forge-${flywheel_minecraft_version}:${flywheel_version}")
+    //implementation fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
+
+    // runtime
+    if (enableRuntimeRecipeViewer == "true") {
+        localRuntime("mezz.jei:jei-$minecraft_version-neoforge:$jeiVersion")
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -1,10 +1,13 @@
 package com.bisson2000.largepatchgenerator;
 
 import com.bisson2000.largepatchgenerator.blocks.ModBlocks;
+import com.bisson2000.largepatchgenerator.component.ModDataComponents;
 import com.bisson2000.largepatchgenerator.item.ModItems;
 import com.bisson2000.largepatchgenerator.worldgen.ModBiomeModifiers;
+import com.bisson2000.largepatchgenerator.worldgen.ModOreFeatures;
 import com.bisson2000.largepatchgenerator.worldgen.ModPlacementModifiers;
 import net.minecraft.world.level.levelgen.GenerationStep;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -48,7 +51,9 @@ public class LargePatchGenerator
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
-        ModPlacementModifiers.register(modEventBus);
+        ModDataComponents.register(modEventBus);
+        ModPlacementModifiers.register(modEventBus); // placement
+        ModOreFeatures.register(modEventBus); // ore features
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);

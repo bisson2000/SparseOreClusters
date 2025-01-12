@@ -123,6 +123,19 @@ public class ModBiomeModifiers {
                 return;
             }
 
+            if (!(replacedFeature.value().feature().value().config() instanceof OreConfiguration oreConfiguration)) {
+                return;
+            }
+
+            //for(OreConfiguration.TargetBlockState targetBlockState : oreConfiguration.targetStates) {
+            //    var blockHolder = targetBlockState.state.getBlockHolder();
+            //    if (!(blockHolder instanceof Holder.Reference<Block> ref)) {
+            //        return false;
+            //    }
+            //}
+
+            replacedFeature.unwrapKey().map(ResourceKey::location);
+
             Set<PlacementModifierType<?>> replacedPlacements = new HashSet<>(Arrays.asList(
                     PlacementModifierType.COUNT, // Number of veins
                     PlacementModifierType.FIXED_PLACEMENT,
@@ -146,11 +159,10 @@ public class ModBiomeModifiers {
 
             // make the veins huge
             ConfiguredFeature<?, ?> newConfiguration = null;
-            if (replacedFeature.value().feature().value().config() instanceof OreConfiguration oreConfiguration) {
-                newConfiguration = new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(oreConfiguration.targetStates, 4, oreConfiguration.discardChanceOnAirExposure));
-            } else {
-                return;
-            }
+            // replacedFeature.value().feature().value().feature() == Feature.ORE
+            newConfiguration = new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(oreConfiguration.targetStates, 4, oreConfiguration.discardChanceOnAirExposure));
+            // TODO: custom ore configuration
+            //newConfiguration = new ConfiguredFeature<>(ModOreFeatures.CENTER_ORE_FEATURE.get(), new OreConfiguration(oreConfiguration.targetStates, 4, oreConfiguration.discardChanceOnAirExposure));
 
             // apply
             PlacedFeature newPlacedFeature = new PlacedFeature(Holder.direct(newConfiguration), newPlacementModifier);
@@ -205,74 +217,6 @@ public class ModBiomeModifiers {
             } else {
                 return MapCodec.unit(INSTANCE);
             }
-        }
-    }
-
-    private static class GenerationSettingsBuilderWrapped {
-        protected final BiomeGenerationSettingsBuilder generation;
-
-        public GenerationSettingsBuilderWrapped(BiomeGenerationSettingsBuilder generation) {
-            this.generation = generation;
-        }
-
-        public Iterable<Holder<ConfiguredWorldCarver<?>>> getCarvers(GenerationStep.Carving carving) {
-            return generation.getCarvers(carving);
-        }
-
-        public Iterable<Holder<PlacedFeature>> getFeatures(GenerationStep.Decoration decoration) {
-            return generation.getFeatures(decoration);
-        }
-    }
-
-    private static class MutableGenerationSettingsBuilderWrapped extends GenerationSettingsBuilderWrapped {
-        public MutableGenerationSettingsBuilderWrapped(BiomeGenerationSettingsBuilder generation) {
-            super(generation);
-        }
-
-        public void addFeature(GenerationStep.Decoration decoration, Holder<PlacedFeature> feature) {
-            generation.addFeature(decoration, feature);
-        }
-
-        public void addFeature(GenerationStep.Decoration decoration, ResourceKey<PlacedFeature> feature) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            if (server != null) {
-                Optional<? extends Registry<PlacedFeature>> registry = server.registryAccess().registry(Registries.PLACED_FEATURE);
-                if (registry.isPresent()) {
-                    Optional<Holder.Reference<PlacedFeature>> holder = registry.get().getHolder(feature);
-                    if (holder.isPresent()) {
-                        addFeature(decoration, holder.get());
-                    } else {
-                        throw new IllegalArgumentException("Unknown feature: " + feature);
-                    }
-                }
-            }
-        }
-
-        public void addCarver(GenerationStep.Carving carving, Holder<ConfiguredWorldCarver<?>> feature) {
-            generation.addCarver(carving, feature);
-        }
-
-        public void addCarver(GenerationStep.Carving carving, ResourceKey<ConfiguredWorldCarver<?>> feature) {
-            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-            if (server != null) {
-                Optional<? extends Registry<ConfiguredWorldCarver<?>>> registry = server.registryAccess().registry(Registries.CONFIGURED_CARVER);
-                if (registry.isPresent()) {
-                    Optional<Holder.Reference<ConfiguredWorldCarver<?>>> holder = registry.get().getHolder(feature);
-                    if (holder.isPresent()) {
-                        addCarver(carving, holder.get());
-                    } else {
-                        throw new IllegalArgumentException("Unknown carver: " + feature);
-                    }
-                }
-            }
-        }
-
-        public void removeFeature(GenerationStep.Decoration decoration, ResourceKey<PlacedFeature> feature) {
-            generation.getFeatures(decoration).removeIf(supplier -> supplier.is(feature));
-        }
-
-        public void removeCarver(GenerationStep.Carving carving, ResourceKey<ConfiguredWorldCarver<?>> feature) {
-            generation.getCarvers(carving).removeIf(supplier -> supplier.is(feature));
         }
     }
 }

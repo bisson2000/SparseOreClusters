@@ -16,7 +16,7 @@ public class ModPlacementModifiers {
     );
 
     public static final DeferredHolder<PlacementModifierType<?>, PlacementModifierType<CenterChunkPlacement>> CENTER_CHUNK_PLACEMENT =
-            PLACEMENTS.register("center_chunk",  () -> () -> CenterChunkPlacement.CODEC);
+            PLACEMENTS.register("center_chunk_placement",  () -> () -> CenterChunkPlacement.CODEC);
 
     public static void register(IEventBus eventBus) {
         PLACEMENTS.register(eventBus);
