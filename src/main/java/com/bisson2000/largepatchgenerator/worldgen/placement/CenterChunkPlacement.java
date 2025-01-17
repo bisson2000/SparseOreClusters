@@ -1,7 +1,6 @@
-package com.bisson2000.largepatchgenerator.worldgen;
+package com.bisson2000.largepatchgenerator.worldgen.placement;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.util.RandomSource;

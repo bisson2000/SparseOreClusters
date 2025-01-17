@@ -1,7 +1,8 @@
 package com.bisson2000.largepatchgenerator;
 
-import com.bisson2000.largepatchgenerator.worldgen.ModBiomeModifiers;
-import com.bisson2000.largepatchgenerator.worldgen.ModPlacementModifiers;
+import com.bisson2000.largepatchgenerator.config.LargePatchGeneratorConfig;
+import com.bisson2000.largepatchgenerator.worldgen.biome.ModBiomeModifiers;
+import com.bisson2000.largepatchgenerator.worldgen.placement.ModPlacementModifiers;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -87,20 +89,13 @@ public class LargePatchGenerator
         modEventBus.addListener(this::addCreative);
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, LargePatchGeneratorConfig.SPEC, "largepatchgenerator.toml");
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
         // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
+        //LOGGER.info("HELLO FROM COMMON SETUP");
     }
 
     // Add the example block item to the building blocks tab
@@ -115,7 +110,7 @@ public class LargePatchGenerator
     public void onServerStarting(ServerStartingEvent event)
     {
         // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
+        //LOGGER.info("HELLO from server starting");
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

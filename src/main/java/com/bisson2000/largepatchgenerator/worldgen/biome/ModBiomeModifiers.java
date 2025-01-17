@@ -1,17 +1,17 @@
-package com.bisson2000.largepatchgenerator.worldgen;
+package com.bisson2000.largepatchgenerator.worldgen.biome;
 
 import com.bisson2000.largepatchgenerator.LargePatchGenerator;
+import com.bisson2000.largepatchgenerator.worldgen.placement.CenterChunkPlacement;
+import com.bisson2000.largepatchgenerator.worldgen.placement.ModPlacementModifiers;
+import com.bisson2000.largepatchgenerator.worldgen.placement.SpreadFilter;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.data.worldgen.features.OreFeatures;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
-import net.minecraft.world.level.levelgen.feature.OreFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.CountPlacement;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
@@ -71,12 +71,21 @@ public class ModBiomeModifiers {
             //        pair.getRight().accept(biomeContext, mutableBiome);
             //    }
             //}
+            GenerationStep.Decoration decoration = GenerationStep.Decoration.UNDERGROUND_ORES;
+
+            switch (phase) {
+                case REMOVE:
+                    removePhase(builder, decoration);
+                    break;
+                case MODIFY:
+                    modifyPhase(builder, decoration);
+                    break;
+            }
 
             if (phase != Phase.MODIFY) {
                 return;
             }
 
-            GenerationStep.Decoration decoration = GenerationStep.Decoration.UNDERGROUND_ORES;
             List<Holder<PlacedFeature>> features = builder.getGenerationSettings().getFeatures(decoration);
 
             //List<PlacementModifier> l = features.get(30).value().placement();
@@ -93,6 +102,21 @@ public class ModBiomeModifiers {
                 replaceFeature(builder, decoration, featureHolder);
             }
 
+
+        }
+
+        private void removePhase(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
+            //List<Holder<PlacedFeature>> features = builder.getGenerationSettings().getFeatures(decoration).stream().filter();
+
+            /// removing features
+            //for (int i = features.size() - 1; i >= 0; --i) {
+            //    Holder<PlacedFeature> feature = features.get(i);
+            //    builder.getGenerationSettings().getFeatures(decoration).re
+            //    LogUtils.getLogger().warn("Removing feature %s from generation step %s in biome %s".formatted(feature.unwrapKey(), decoration.name().toLowerCase(), biome.getKey()));
+            //}
+        }
+
+        private void modifyPhase(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
 
         }
 
@@ -120,7 +144,8 @@ public class ModBiomeModifiers {
             Set<PlacementModifierType<?>> replacedPlacements = new HashSet<>(Arrays.asList(
                     PlacementModifierType.COUNT, // Number of veins
                     PlacementModifierType.IN_SQUARE,
-                    ModPlacementModifiers.CENTER_CHUNK_PLACEMENT.get()
+                    ModPlacementModifiers.CENTER_CHUNK_PLACEMENT.get(),
+                    ModPlacementModifiers.SPREAD_FILTER.get()
             ));
 
             // Remove placements
@@ -130,12 +155,15 @@ public class ModBiomeModifiers {
                     newPlacementModifier.remove(j);
                 }
             }
+            // Place at the center
+            newPlacementModifier.add(CenterChunkPlacement.center());
+
+            // Make it rare
+            newPlacementModifier.add(new SpreadFilter(0.0f, 1.0f, 0));
 
             // Get the new placement modifier, with a vein of NUMBER_OF_VEINS
             newPlacementModifier.add(CountPlacement.of(NUMBER_OF_VEINS));
 
-            // Place at the center
-            newPlacementModifier.add(CenterChunkPlacement.center());
 
             // make the veins huge
             ConfiguredFeature<?, ?> newConfiguration = null;
@@ -182,12 +210,7 @@ public class ModBiomeModifiers {
             //    LogUtils.getLogger().warn("Removing feature %s from generation step %s in biome %s".formatted(feature.unwrapKey(), decoration.name().toLowerCase(), biome.getKey()));
             //}
 
-            /// removing features
-            //for (int i = features.size() - 1; i >= 0; --i) {
-            //    Holder<PlacedFeature> feature = features.get(i);
-            //    builder.getGenerationSettings().getFeatures(decoration).removeIf(s -> s.is(feature));
-            //    LogUtils.getLogger().warn("Removing feature %s from generation step %s in biome %s".formatted(feature.unwrapKey(), decoration.name().toLowerCase(), biome.getKey()));
-            //}
+
         }
 
         @Override
