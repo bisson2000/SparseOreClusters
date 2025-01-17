@@ -1,77 +1,44 @@
 package com.bisson2000.largepatchgenerator.worldgen;
 
 import com.bisson2000.largepatchgenerator.LargePatchGenerator;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.data.worldgen.features.OreFeatures;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
-import net.minecraft.world.level.levelgen.carver.ConfiguredWorldCarver;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.OreFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
-import net.minecraft.world.level.levelgen.placement.*;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.world.BiomeGenerationSettingsBuilder;
-import net.neoforged.neoforge.common.world.BiomeModifier;
-import net.neoforged.neoforge.common.world.BiomeModifiers;
-import net.neoforged.neoforge.common.world.ModifiableBiomeInfo;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraft.world.level.levelgen.placement.CountPlacement;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.placement.PlacementModifier;
+import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
+import net.minecraftforge.common.world.BiomeModifier;
+import net.minecraftforge.common.world.ModifiableBiomeInfo;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ModBiomeModifiers {
-    public static final ResourceKey<BiomeModifier> ADD_BISMUTH_ORE = registerKey("add_bismuth_ore");
-    public static final ResourceKey<BiomeModifier> ADD_NETHER_BISMUTH_ORE = registerKey("add_nether_bismuth_ore");
-    public static final ResourceKey<BiomeModifier> ADD_END_BISMUTH_ORE = registerKey("add_end_bismuth_ore");
 
-    public static void bootstrap(BootstrapContext<BiomeModifier> context) {
-        // CF -> PF -> BM
-        var placedFeatures = context.lookup(Registries.PLACED_FEATURE);
-        var biomes = context.lookup(Registries.BIOME);
-
-        context.register(ADD_BISMUTH_ORE, new BiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(BiomeTags.IS_OVERWORLD),
-                HolderSet.direct(placedFeatures.getOrThrow(ModPlacedFeatures.BISMUTH_ORE_PLACED_KEY)),
-                GenerationStep.Decoration.UNDERGROUND_ORES
-        ));
-        context.register(ADD_NETHER_BISMUTH_ORE, new BiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(BiomeTags.IS_NETHER),
-                HolderSet.direct(placedFeatures.getOrThrow(ModPlacedFeatures.NETHER_BISMUTH_ORE_PLACED_KEY)),
-                GenerationStep.Decoration.UNDERGROUND_ORES
-        ));
-        context.register(ADD_END_BISMUTH_ORE, new BiomeModifiers.AddFeaturesBiomeModifier(
-                biomes.getOrThrow(BiomeTags.IS_END),
-                HolderSet.direct(placedFeatures.getOrThrow(ModPlacedFeatures.END_BISMUTH_ORE_PLACED_KEY)),
-                GenerationStep.Decoration.UNDERGROUND_ORES
-        ));
-
-    }
-
-    private static ResourceKey<BiomeModifier> registerKey(String name) {
-        return ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ResourceLocation.fromNamespaceAndPath(LargePatchGenerator.MODID, name));
-    }
 
     @Nullable
-    private static MapCodec<BiomeModifierImpl> noneBiomeModCodec = null;
+    private static Codec<BiomeModifierImpl> noneBiomeModCodec = null;
 
     public static void init(IEventBus modEventBus) {
         modEventBus.<RegisterEvent>addListener(event -> {
-            event.register(NeoForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, registry -> {
-                ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(LargePatchGenerator.MODID, "none_biome_mod_codec");
-                noneBiomeModCodec = MapCodec.unit(BiomeModifierImpl.INSTANCE);
+            event.register(ForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, registry -> {
+                ResourceLocation resourceLocation = new ResourceLocation(LargePatchGenerator.MOD_ID, "none_biome_mod_codec");
+                noneBiomeModCodec = Codec.unit(BiomeModifierImpl.INSTANCE);
                 registry.register(resourceLocation, noneBiomeModCodec);
-
             });
             // Never called
             //event.register(NeoForgeRegistries.Keys.BIOME_MODIFIERS, registry -> {
@@ -117,7 +84,21 @@ public class ModBiomeModifiers {
             //features.stream().findFirst(placedFeatureHolder -> placedFeatureHolder.getKey().location().getPath() == );
             //features.stream().findFirst()
 
-            Holder<PlacedFeature> replacedFeature = features.stream().filter(featureHolder -> featureHolder.getKey().location().getPath().equals("bismuth_ore_placed")).findFirst().orElse(null);
+            //Holder<PlacedFeature> replacedFeature = features.stream().filter(featureHolder -> featureHolder.is(new ResourceLocation("minecraft", "ore_iron_upper"))).findFirst().orElse(null)
+            final List<Holder<PlacedFeature>> replacedFeatures = features.stream().filter(featureHolder -> {
+                return featureHolder.value().feature().unwrapKey().get() == OreFeatures.ORE_IRON || featureHolder.value().feature().unwrapKey().get() == OreFeatures.ORE_IRON_SMALL;
+            }).collect(Collectors.toCollection(ArrayList::new));
+
+            for (Holder<PlacedFeature> featureHolder : replacedFeatures) {
+                replaceFeature(builder, decoration, featureHolder);
+            }
+
+
+        }
+
+        private void replaceFeature(ModifiableBiomeInfo.BiomeInfo.Builder builder,  GenerationStep.Decoration decoration, Holder<PlacedFeature> replacedFeature) {
+            final int VEIN_SIZE = 64;
+            final int NUMBER_OF_VEINS = 1;
 
             if (replacedFeature == null) {
                 return;
@@ -134,40 +115,39 @@ public class ModBiomeModifiers {
             //    }
             //}
 
-            replacedFeature.unwrapKey().map(ResourceKey::location);
+            //replacedFeature.unwrapKey().map(ResourceKey::location);
 
             Set<PlacementModifierType<?>> replacedPlacements = new HashSet<>(Arrays.asList(
                     PlacementModifierType.COUNT, // Number of veins
-                    PlacementModifierType.FIXED_PLACEMENT,
                     PlacementModifierType.IN_SQUARE,
                     ModPlacementModifiers.CENTER_CHUNK_PLACEMENT.get()
             ));
 
-            // Get the new placement modifier, with a vein of 1
-            List<PlacementModifier> newPlacementModifier = new java.util.ArrayList<>(replacedFeature.value().placement());
+            // Remove placements
+            List<PlacementModifier> newPlacementModifier = new ArrayList<>(replacedFeature.value().placement());
             for (int j =  newPlacementModifier.size() - 1; j >= 0; --j) {
                 if (replacedPlacements.contains(newPlacementModifier.get(j).type())) {
                     newPlacementModifier.remove(j);
                 }
             }
-            newPlacementModifier.add(CountPlacement.of(1));
-            //newPlacementModifier.add(FixedPlacement.of(
-            //        new BlockPos(0, 0, 0)
-            //));
-            //newPlacementModifier.add(InSquarePlacement.spread());
+
+            // Get the new placement modifier, with a vein of NUMBER_OF_VEINS
+            newPlacementModifier.add(CountPlacement.of(NUMBER_OF_VEINS));
+
+            // Place at the center
             newPlacementModifier.add(CenterChunkPlacement.center());
 
             // make the veins huge
             ConfiguredFeature<?, ?> newConfiguration = null;
             // replacedFeature.value().feature().value().feature() == Feature.ORE
-            newConfiguration = new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(oreConfiguration.targetStates, 4, oreConfiguration.discardChanceOnAirExposure));
+            newConfiguration = new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(oreConfiguration.targetStates, VEIN_SIZE, oreConfiguration.discardChanceOnAirExposure));
             // TODO: custom ore configuration
             //newConfiguration = new ConfiguredFeature<>(ModOreFeatures.CENTER_ORE_FEATURE.get(), new OreConfiguration(oreConfiguration.targetStates, 4, oreConfiguration.discardChanceOnAirExposure));
 
             // apply
             PlacedFeature newPlacedFeature = new PlacedFeature(Holder.direct(newConfiguration), newPlacementModifier);
             Holder<PlacedFeature> placedFeatureHolder = Holder.direct(newPlacedFeature);
-            builder.getGenerationSettings().getFeatures(decoration).removeIf(s -> s.is(replacedFeature));
+            builder.getGenerationSettings().getFeatures(decoration).removeIf(s -> s.is(replacedFeature.unwrap().left().get()));
             builder.getGenerationSettings().addFeature(decoration, placedFeatureHolder);
 
             //features.get(30).value().placement().toArray()
@@ -211,11 +191,11 @@ public class ModBiomeModifiers {
         }
 
         @Override
-        public MapCodec<? extends BiomeModifier> codec() {
+        public Codec<? extends BiomeModifier> codec() {
             if (noneBiomeModCodec != null) {
                 return noneBiomeModCodec;
             } else {
-                return MapCodec.unit(INSTANCE);
+                return Codec.unit(INSTANCE);
             }
         }
     }

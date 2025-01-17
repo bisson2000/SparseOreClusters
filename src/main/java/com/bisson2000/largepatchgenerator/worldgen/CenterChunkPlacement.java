@@ -1,5 +1,6 @@
 package com.bisson2000.largepatchgenerator.worldgen;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -7,19 +8,20 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
 public class CenterChunkPlacement extends PlacementModifier {
     private static final CenterChunkPlacement INSTANCE = new CenterChunkPlacement();
-    public static final MapCodec<CenterChunkPlacement> CODEC = MapCodec.unit(() -> INSTANCE);
+    public static final Codec<CenterChunkPlacement> CODEC = Codec.unit(() -> INSTANCE);
 
     public static CenterChunkPlacement center() {
         return INSTANCE;
     }
 
     @Override
-    public Stream<BlockPos> getPositions(PlacementContext context, RandomSource random, BlockPos pos) {
+    public @NotNull Stream<BlockPos> getPositions(@NotNull PlacementContext context, @NotNull RandomSource random, BlockPos pos) {
         // Calculate the center of the chunk /fill ~ ~ ~ ~16 ~-100 ~16 air replace minecraft:stone
         int centerX = SectionPos.blockToSectionCoord(pos.getX());
         int centerZ = SectionPos.blockToSectionCoord(pos.getZ());
@@ -30,7 +32,7 @@ public class CenterChunkPlacement extends PlacementModifier {
     }
 
     @Override
-    public PlacementModifierType<?> type() {
+    public @NotNull PlacementModifierType<?> type() {
         return ModPlacementModifiers.CENTER_CHUNK_PLACEMENT.get();
     }
 }
