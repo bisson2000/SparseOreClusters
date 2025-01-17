@@ -1,5 +1,7 @@
 package com.bisson2000.largepatchgenerator.config;
 
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -7,6 +9,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class LargePatchGeneratorConfig {
@@ -18,7 +21,6 @@ public class LargePatchGeneratorConfig {
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> ALLOW_LISTED_BLOCKS;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> DENY_LISTED_BLOCKS;
     private static HashSet<Block> TARGETED_BLOCKS = new HashSet<>();
-    private static HashSet<Item> TARGETED_BLOCKS_NAMES = new HashSet<>();
 
     static {
         BUILDER.push("Configs for Large Patch Generator");
@@ -38,15 +40,10 @@ public class LargePatchGeneratorConfig {
 
     public static void SetTargetedBlocks(HashSet<Block> set) {
         TARGETED_BLOCKS = set;
-        TARGETED_BLOCKS_NAMES = set.stream().map(Block::asItem).collect(Collectors.toCollection(HashSet::new));
     }
 
     public static boolean isTargeted(Block block) {
         return TARGETED_BLOCKS.contains(block);
-    }
-
-    public static boolean isTargeted(Item item) {
-        return TARGETED_BLOCKS_NAMES.contains(item);
     }
 
 }

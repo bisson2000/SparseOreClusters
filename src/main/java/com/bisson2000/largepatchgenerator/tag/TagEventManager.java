@@ -26,15 +26,25 @@ public class TagEventManager {
             return;
         }
 
-        Set<String> whitelist = new HashSet<>(LargePatchGeneratorConfig.ALLOW_LISTED_BLOCKS.get());
-        Set<String> blacklist = new HashSet<>(LargePatchGeneratorConfig.DENY_LISTED_BLOCKS.get());
+        final Set<String> whitelist = new HashSet<>(LargePatchGeneratorConfig.ALLOW_LISTED_BLOCKS.get());
+        final Set<String> blacklist = new HashSet<>(LargePatchGeneratorConfig.DENY_LISTED_BLOCKS.get());
 
         HashSet<Block> targetList = new HashSet<>();
         ITagManager<Block> tagManager = ForgeRegistries.BLOCKS.tags();
+
+        // Search by #forge:ore tag
         if (LargePatchGeneratorConfig.AUTO_ORE_SEARCH.get() && tagManager != null) {
-            targetList.addAll(tagManager.getTag(BlockTags.create(new ResourceLocation("forge", "ores"))).stream().collect(Collectors.toCollection(HashSet::new)));
+            tagManager.getTag(BlockTags.create(new ResourceLocation("forge", "ores"))).forEach(b -> {
+                b.defaultBlockState().getBlockHolder().unwrapKey().ifPresent(k -> {
+                    String name = k.location().toString();
+                    if (!blacklist.contains(name)) {
+                        targetList.add(b);
+                    }
+                });
+            });
         }
 
+        // Search through all blocks
         targetList.addAll(
                 ForgeRegistries.BLOCKS.getEntries().stream().filter(entry -> {
                     ResourceKey<Block> resourceKey = entry.getKey();
@@ -48,6 +58,8 @@ public class TagEventManager {
                     return match;
                 }).map(Map.Entry::getValue).collect(Collectors.toCollection(HashSet::new))
         );
+
+        // Complete operation
         LargePatchGeneratorConfig.SetTargetedBlocks(targetList);
     }
 

@@ -1,6 +1,7 @@
 package com.bisson2000.largepatchgenerator.worldgen.biome;
 
 import com.bisson2000.largepatchgenerator.LargePatchGenerator;
+import com.bisson2000.largepatchgenerator.config.LargePatchGeneratorConfig;
 import com.bisson2000.largepatchgenerator.worldgen.placement.CenterChunkPlacement;
 import com.bisson2000.largepatchgenerator.worldgen.placement.ModPlacementModifiers;
 import com.bisson2000.largepatchgenerator.worldgen.placement.SpreadFilter;
@@ -74,19 +75,10 @@ public class ModBiomeModifiers {
             GenerationStep.Decoration decoration = GenerationStep.Decoration.UNDERGROUND_ORES;
 
             switch (phase) {
-                case REMOVE:
-                    removePhase(builder, decoration);
-                    break;
                 case MODIFY:
                     modifyPhase(builder, decoration);
                     break;
             }
-
-            if (phase != Phase.MODIFY) {
-                return;
-            }
-
-            List<Holder<PlacedFeature>> features = builder.getGenerationSettings().getFeatures(decoration);
 
             //List<PlacementModifier> l = features.get(30).value().placement();
 
@@ -94,30 +86,62 @@ public class ModBiomeModifiers {
             //features.stream().findFirst()
 
             //Holder<PlacedFeature> replacedFeature = features.stream().filter(featureHolder -> featureHolder.is(new ResourceLocation("minecraft", "ore_iron_upper"))).findFirst().orElse(null)
-            final List<Holder<PlacedFeature>> replacedFeatures = features.stream().filter(featureHolder -> {
-                return featureHolder.value().feature().unwrapKey().get() == OreFeatures.ORE_IRON || featureHolder.value().feature().unwrapKey().get() == OreFeatures.ORE_IRON_SMALL;
-            }).collect(Collectors.toCollection(ArrayList::new));
+        }
+
+//        private void removePhase(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
+//            final int KEPT_ORES_PER_CHUNK = 2;
+//
+//            List<Holder<PlacedFeature>> features = builder.getGenerationSettings().getFeatures(decoration);
+//
+//            List<Integer> matches = new ArrayList<>();
+//
+//            // find matching features indexes
+//            for (int i = features.size() - 1; i >= 0; --i) {
+//                if (isPlacedFeatureMatch(features.get(i))) {
+//                    matches.add(i); // sorted in descending order
+//                }
+//            }
+//
+//            // Nothing to remove
+//            if (matches.size() < KEPT_ORES_PER_CHUNK) {
+//                return;
+//            }
+//
+//            // remove random indexes
+//            Random randomSource = new Random();
+//            for (int i = 0; i < KEPT_ORES_PER_CHUNK; ++i) {
+//                int randomIndex = randomSource.nextInt(matches.size());
+//                matches.remove(randomIndex);
+//            }
+//
+//            // Remove features
+//            // Important for matches to be sorted in descending order
+//            for (int matchIndex : matches) {
+//                features.remove(matchIndex);
+//            }
+//        }
+
+        private void modifyPhase(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
+            List<Holder<PlacedFeature>> features = builder.getGenerationSettings().getFeatures(decoration);
+
+            final List<Holder<PlacedFeature>> replacedFeatures = features.stream()
+                    .filter(BiomeModifierImpl::isPlacedFeatureMatch)
+                    .collect(Collectors.toCollection(ArrayList::new));
 
             for (Holder<PlacedFeature> featureHolder : replacedFeatures) {
                 replaceFeature(builder, decoration, featureHolder);
             }
-
-
         }
 
-        private void removePhase(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
-            //List<Holder<PlacedFeature>> features = builder.getGenerationSettings().getFeatures(decoration).stream().filter();
-
-            /// removing features
-            //for (int i = features.size() - 1; i >= 0; --i) {
-            //    Holder<PlacedFeature> feature = features.get(i);
-            //    builder.getGenerationSettings().getFeatures(decoration).re
-            //    LogUtils.getLogger().warn("Removing feature %s from generation step %s in biome %s".formatted(feature.unwrapKey(), decoration.name().toLowerCase(), biome.getKey()));
-            //}
-        }
-
-        private void modifyPhase(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
-
+        private static boolean isPlacedFeatureMatch(Holder<PlacedFeature> featureHolder) {
+            if (featureHolder.value().feature().value().config() instanceof OreConfiguration oreConfiguration) {
+                boolean match = !oreConfiguration.targetStates.isEmpty();
+                for (OreConfiguration.TargetBlockState targetState : oreConfiguration.targetStates) {
+                    match = match && LargePatchGeneratorConfig.isTargeted(targetState.state.getBlock());
+                }
+                return match;
+            }
+            return false;
         }
 
         private void replaceFeature(ModifiableBiomeInfo.BiomeInfo.Builder builder,  GenerationStep.Decoration decoration, Holder<PlacedFeature> replacedFeature) {

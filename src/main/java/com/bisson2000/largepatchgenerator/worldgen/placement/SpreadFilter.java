@@ -79,20 +79,21 @@ public class SpreadFilter extends PlacementFilter {
         //context.topFeature()
 
         // Deny placement if chunk placement was not allowed
-        if (currentBlockResource.isEmpty() || (allowedChunks.containsKey(currentChunkPos) && allowedChunks.get(currentChunkPos) != currentBlockResource.get().location())) {
-            return false;
-        }
+        return true;
+        //if (currentBlockResource.isEmpty() || (allowedChunks.containsKey(currentChunkPos) && allowedChunks.get(currentChunkPos) != currentBlockResource.get().location())) {
+        //    return false;
+        //}
 
         // Compute odds for placement based on distance
-        double distance = currentChunkPos.getMiddleBlockPosition(0).distSqr(spawnPos);
-        double odds = Math.max(0, (distance * distanceMultiplier + baseOdd) - minDistance);
-        boolean willPlace = randomSource.nextDouble() < odds;
-
-        if (!allowedChunks.containsKey(currentChunkPos)) {
-            allowedChunks.put(currentChunkPos, currentBlockResource.get().location());
-        }
-
-        return willPlace;
+//        double distance = currentChunkPos.getMiddleBlockPosition(0).distSqr(spawnPos);
+//        double odds = Math.max(0, (distance * distanceMultiplier + baseOdd) - minDistance);
+//        boolean willPlace = randomSource.nextDouble() < odds;
+//
+//        if (!allowedChunks.containsKey(currentChunkPos)) {
+//            allowedChunks.put(currentChunkPos, currentBlockResource.get().location());
+//        }
+//
+//        return willPlace;
     }
 
     @Override
