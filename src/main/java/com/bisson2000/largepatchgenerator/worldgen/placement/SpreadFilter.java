@@ -1,5 +1,6 @@
 package com.bisson2000.largepatchgenerator.worldgen.placement;
 
+import com.bisson2000.largepatchgenerator.LargePatchGenerator;
 import com.bisson2000.largepatchgenerator.config.LargePatchGeneratorConfig;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,10 +12,14 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementFilter;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
+import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -32,6 +37,9 @@ public class SpreadFilter extends PlacementFilter {
 
     // Static HashMap to track chunk positions
     public static final ConcurrentHashMap<ServerLevel, HashMap<ChunkPos, Tuple<Biome, HashSet<Block>>>> trackedChunks = new ConcurrentHashMap<>();
+
+    // DEBUG
+    // public static final ConcurrentHashMap<ServerLevel, ChunkPos> removedChunks = new ConcurrentHashMap<>();
 
     public SpreadFilter(float chanceOfSpawningPerChunk) {
         this.chanceOfSpawningPerChunk = chanceOfSpawningPerChunk;
@@ -52,6 +60,10 @@ public class SpreadFilter extends PlacementFilter {
                 generateDeadChunk(context, blockPos, biome);
             }
         }
+
+//        if (removedChunks.containsKey(serverLevel) && removedChunks.get(serverLevel) == currentChunkPos) {
+//            System.out.println("Regenerating in a removed chunk! at pos x:" + currentChunkPos.x + " z:" + currentChunkPos.z);
+//        }
 
         Biome allowedBiome = trackedChunks.get(serverLevel).get(currentChunkPos).getA();
         HashSet<Block> allowedBlocks = trackedChunks.get(serverLevel).get(currentChunkPos).getB();
@@ -138,5 +150,30 @@ public class SpreadFilter extends PlacementFilter {
     @Override
     public PlacementModifierType<?> type() {
         return ModPlacementModifiers.SPREAD_FILTER.get();
+    }
+
+    /**
+     * Using this event to clear the trackedChunks cache
+     * Once a chunk is generated, the cache for it becomes useless
+     * This event is only called once the chunk is gully generated.
+     * Therefore, we exploit this event.
+     *
+     * */
+    @Mod.EventBusSubscriber(modid = LargePatchGenerator.MOD_ID)
+    private static class EventHandler {
+        @SubscribeEvent
+        public static void attachChunkCapabilities(final AttachCapabilitiesEvent<LevelChunk> event) {
+            final LevelChunk chunk = event.getObject();
+            if (!(chunk.getLevel() instanceof ServerLevel serverLevel)) return;
+
+            if(SpreadFilter.trackedChunks.containsKey(serverLevel)) {
+                SpreadFilter.trackedChunks.get(serverLevel).remove(chunk.getPos());
+                if (SpreadFilter.trackedChunks.get(serverLevel).isEmpty()) {
+                    SpreadFilter.trackedChunks.remove(serverLevel);
+                }
+            }
+
+            //removedChunks.put(serverLevel, chunk.getPos());
+        }
     }
 }
