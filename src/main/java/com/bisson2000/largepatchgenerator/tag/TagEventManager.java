@@ -7,12 +7,9 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraftforge.event.TagsUpdatedEvent;
@@ -22,7 +19,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.ITagManager;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(modid = LargePatchGenerator.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class TagEventManager {
@@ -32,21 +28,6 @@ public class TagEventManager {
         if (event.getUpdateCause() != TagsUpdatedEvent.UpdateCause.SERVER_DATA_LOAD) {
             return;
         }
-
-//        var a = event.getRegistryAccess().registryOrThrow(Registries.DIMENSION_TYPE).entrySet();
-//        for (var b : a) {
-//            //b.getValue().ambientLight()
-//        }
-//        MinecraftServer mc;
-//        mc.getAllLevels().forEach(l -> {
-//            var dim = l.dimensionType();
-//            l.getChunkSource().getGenerator().getBiomeSource().possibleBiomes().forEach(biomeHolder -> {
-//                var feat = biomeHolder.get().getGenerationSettings().features().get(GenerationStep.Decoration.UNDERGROUND_ORES.ordinal());
-//            });
-//
-//        });
-
-
 
         final Set<String> whitelist = new HashSet<>(LargePatchGeneratorConfig.ALLOW_LISTED_BLOCKS.get());
         final Set<String> blacklist = new HashSet<>(LargePatchGeneratorConfig.DENY_LISTED_BLOCKS.get());
@@ -106,7 +87,6 @@ public class TagEventManager {
         }
 
         // For debugging: event.getRegistryAccess().registryOrThrow(Registries.BIOME).getKey(allowedBlocksInBiome.keySet().stream().toList().get(7))
-
         // Complete operation
         LargePatchGeneratorConfig.setTargetedBlocksInBiome(allowedBlocksInBiome);
         LargePatchGeneratorConfig.setTargetedBlocks(targetList);

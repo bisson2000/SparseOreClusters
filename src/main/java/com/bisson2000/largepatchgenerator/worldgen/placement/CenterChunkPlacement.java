@@ -21,7 +21,8 @@ public class CenterChunkPlacement extends PlacementModifier {
 
     @Override
     public @NotNull Stream<BlockPos> getPositions(@NotNull PlacementContext context, @NotNull RandomSource random, BlockPos pos) {
-        // Calculate the center of the chunk /fill ~ ~ ~ ~16 ~-100 ~16 air replace minecraft:stone
+        // Calculate the center of the chunk
+        // Debug command: /fill ~ ~ ~ ~16 ~-100 ~16 air replace minecraft:stone
         int centerX = SectionPos.blockToSectionCoord(pos.getX());
         int centerZ = SectionPos.blockToSectionCoord(pos.getZ());
 

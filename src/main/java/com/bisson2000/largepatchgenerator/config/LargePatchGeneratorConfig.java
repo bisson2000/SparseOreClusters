@@ -1,21 +1,15 @@
 package com.bisson2000.largepatchgenerator.config;
 
 import com.bisson2000.largepatchgenerator.utils.ModRandomExtension;
-import com.electronwill.nightconfig.core.CommentedConfig;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.util.Tuple;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 public class LargePatchGeneratorConfig {
 
@@ -33,7 +27,8 @@ public class LargePatchGeneratorConfig {
     // default values
     private static final List<? extends List<?>> DEFAULT_WEIGHT_LIST = List.of(
             List.of("minecraft:diamond_ore", 0.7),
-            List.of("minecraft:deepslate_diamond_ore", 0.7)
+            List.of("minecraft:deepslate_diamond_ore", 0.7),
+            List.of("minecraft:ancient_debris", 0.2)
     );
 
     // definitions
@@ -50,7 +45,8 @@ public class LargePatchGeneratorConfig {
         DENY_LISTED_BLOCKS = BUILDER.comment(" Which blocks are NOT allowed to have their generation modified. Write the block with modid:block_name")
                 .defineListAllowEmpty("Denied blocks", Arrays.asList("minecraft:oak_log", "minecraft:acacia_log"), entry -> entry instanceof String);
 
-        WEIGHT_LIST = BUILDER.comment(" A list of weights each ore has. The higher the weight, the more likely it is for the ore to appear.\n Takes in pairs of values (string, weight). The weight should be above 0. By default, all ores have a weight of 1.")
+        WEIGHT_LIST = BUILDER.comment(" A list of weights each ore has. The higher the weight, the more likely it is for the ore to appear.\n" +
+                        " Takes in pairs of values (modid:block_name, weight). The weight should be above 0. By default, all ores have a weight of 1.")
                 .defineList("Weight list", DEFAULT_WEIGHT_LIST, obj -> {
                     if (!(obj instanceof List<?> list) || list.size() != 2) return false;
                     if (!(list.get(1) instanceof Double weight)) return false;
@@ -67,10 +63,6 @@ public class LargePatchGeneratorConfig {
 
     public static void setTargetedBlocksInBiome(HashMap<Biome, HashSet<Block>> set) {
         TARGETED_BLOCKS_IN_BIOME = set;
-    }
-
-    public static boolean isTargetedInBiome(Biome biome, Block block) {
-        return TARGETED_BLOCKS_IN_BIOME.containsKey(biome) && TARGETED_BLOCKS_IN_BIOME.get(biome).contains(block);
     }
 
     public static boolean isTargeted(Block block) {

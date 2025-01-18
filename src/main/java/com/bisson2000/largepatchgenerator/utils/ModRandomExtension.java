@@ -1,10 +1,8 @@
 package com.bisson2000.largepatchgenerator.utils;
 
 import net.minecraft.util.RandomSource;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ModRandomExtension {
