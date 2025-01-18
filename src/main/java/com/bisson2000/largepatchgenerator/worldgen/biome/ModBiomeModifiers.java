@@ -183,7 +183,7 @@ public class ModBiomeModifiers {
             newPlacementModifier.add(CenterChunkPlacement.center());
 
             // Make it rare
-            newPlacementModifier.add(new SpreadFilter(0.0f, 1.0f, 0));
+            newPlacementModifier.add(new SpreadFilter(0.5f));
 
             // Get the new placement modifier, with a vein of NUMBER_OF_VEINS
             newPlacementModifier.add(CountPlacement.of(NUMBER_OF_VEINS));

@@ -12,6 +12,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.ITagManager;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +30,7 @@ public class TagEventManager {
         final Set<String> whitelist = new HashSet<>(LargePatchGeneratorConfig.ALLOW_LISTED_BLOCKS.get());
         final Set<String> blacklist = new HashSet<>(LargePatchGeneratorConfig.DENY_LISTED_BLOCKS.get());
 
-        HashSet<Block> targetList = new HashSet<>();
+        HashMap<Block, ResourceLocation> targetList = new HashMap<>();
         ITagManager<Block> tagManager = ForgeRegistries.BLOCKS.tags();
 
         // Search by #forge:ore tag
@@ -38,26 +39,28 @@ public class TagEventManager {
                 b.defaultBlockState().getBlockHolder().unwrapKey().ifPresent(k -> {
                     String name = k.location().toString();
                     if (!blacklist.contains(name)) {
-                        targetList.add(b);
+                        targetList.put(b, k.location());
                     }
                 });
             });
         }
 
         // Search through all blocks
-        targetList.addAll(
-                ForgeRegistries.BLOCKS.getEntries().stream().filter(entry -> {
-                    ResourceKey<Block> resourceKey = entry.getKey();
-                    String name = resourceKey.location().toString();
-                    boolean match = whitelist.contains(name);
-                    if (LargePatchGeneratorConfig.AUTO_ORE_SEARCH.get()) {
-                        match = match || name.contains("_ore");
-                    }
-                    match = match && !blacklist.contains(name);
+        ForgeRegistries.BLOCKS.getEntries().stream().filter(entry -> {
+            ResourceKey<Block> resourceKey = entry.getKey();
+            String name = resourceKey.location().toString();
+            boolean match = whitelist.contains(name);
+            if (LargePatchGeneratorConfig.AUTO_ORE_SEARCH.get()) {
+                match = match || name.contains("_ore");
+            }
+            match = match && !blacklist.contains(name);
 
-                    return match;
-                }).map(Map.Entry::getValue).collect(Collectors.toCollection(HashSet::new))
-        );
+            return match;
+        }).forEach(entry -> {
+            targetList.put(entry.getValue(), entry.getKey().location());
+        });
+
+        //ForgeRegistries.BIOMES.getValues().stream().forEach(b -> b.getGenerationSettings().features());
 
         // Complete operation
         LargePatchGeneratorConfig.SetTargetedBlocks(targetList);

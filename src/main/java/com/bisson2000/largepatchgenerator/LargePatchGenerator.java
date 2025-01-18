@@ -39,7 +39,7 @@ public class LargePatchGenerator
         MinecraftForge.EVENT_BUS.register(this);
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, LargePatchGeneratorConfig.SPEC, "largepatchgenerator.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, LargePatchGeneratorConfig.SPEC);
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

@@ -1,5 +1,6 @@
 package com.bisson2000.largepatchgenerator.worldgen.placement;
 
+import com.bisson2000.largepatchgenerator.config.LargePatchGeneratorConfig;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -9,6 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementFilter;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
@@ -22,78 +25,77 @@ import java.util.Map;
 import java.util.Optional;
 
 public class SpreadFilter extends PlacementFilter {
-    private static final Codec<ChunkPos> CHUNK_POS_CODEC = RecordCodecBuilder.create(
+    public static final Codec<ChunkPos> CHUNK_POS_CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
                     Codec.INT.fieldOf("x").forGetter(c -> c.x),
                     Codec.INT.fieldOf("z").forGetter(c -> c.z)
             ).apply(instance, ChunkPos::new)
     );
 
-    public static final Codec<Map<ChunkPos, ResourceLocation>> USED_CHUNKS_CODEC = Codec.unboundedMap(
-            CHUNK_POS_CODEC, ResourceLocation.CODEC
+    public static final Codec<Map<ChunkPos, HashSet<Block>>> USED_CHUNKS_CODEC = Codec.unboundedMap(
+            CHUNK_POS_CODEC,
+            Codec.list(ForgeRegistries.BLOCKS.getCodec()).xmap(HashSet::new, blocks -> blocks.stream().toList())
     );
 
     public static final Codec<SpreadFilter> CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
-                    Codec.FLOAT.fieldOf("base_odd").forGetter(filter -> filter.baseOdd),
-                    Codec.FLOAT.fieldOf("distance_multiplier").forGetter(filter -> filter.distanceMultiplier),
-                    Codec.INT.fieldOf("min_distance").forGetter(filter -> filter.minDistance),
-                    USED_CHUNKS_CODEC.fieldOf("used_chunks").forGetter(filter -> SpreadFilter.allowedChunks)
-                    //CHUNK_POS_CODEC.fieldOf("tracked_chunks").forGetter(filter -> SpreadFilter.trackedChunks)
+                    Codec.FLOAT.fieldOf("base_odd").forGetter(filter -> filter.chanceOfSpawningPerChunk),
+                    USED_CHUNKS_CODEC.fieldOf("used_chunks").forGetter(filter -> SpreadFilter.trackedChunks)
             ).apply(instance, SpreadFilter::new)
     );
 
-    private final float baseOdd;
-    private final float distanceMultiplier;
-    private final int minDistance;
+    private final float chanceOfSpawningPerChunk;
 
-    // Static HashSet to track chunk positions
-    public static final HashMap<ChunkPos, ResourceLocation> allowedChunks = new HashMap<>();
+    // Static HashMap to track chunk positions
+    public static final HashMap<ChunkPos, HashSet<Block>> trackedChunks = new HashMap<>();
 
-    public SpreadFilter(float baseOdd, float distanceMultiplier, int minDistance) {
-        this.baseOdd = baseOdd;
-        this.distanceMultiplier = distanceMultiplier;
-        this.minDistance = minDistance;
+    public SpreadFilter(float chanceOfSpawningPerChunk) {
+        this.chanceOfSpawningPerChunk = chanceOfSpawningPerChunk;
     }
 
-    public SpreadFilter(float baseOdd, float distanceMultiplier, int minDistance, Map<ChunkPos, ResourceLocation> trackedChunks) {
-        this.baseOdd = baseOdd;
-        this.distanceMultiplier = distanceMultiplier;
-        this.minDistance = minDistance;
+    public SpreadFilter(float chanceOfSpawning, Map<ChunkPos, HashSet<Block>> trackedChunks) {
+        this.chanceOfSpawningPerChunk = chanceOfSpawning;
         trackedChunks.forEach((k, v) -> {
-            if (!SpreadFilter.allowedChunks .containsKey(k)) {
-                SpreadFilter.allowedChunks.put(k, v);
+            if (!SpreadFilter.trackedChunks.containsKey(k)) {
+                SpreadFilter.trackedChunks.get(k).addAll(v);
             }
         });
     }
 
     @Override
-    protected boolean shouldPlace(PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
-        LevelData levelData = context.getLevel().getLevelData();
-        BlockPos spawnPos = new BlockPos(levelData.getXSpawn(), 0, levelData.getZSpawn());
+    protected boolean shouldPlace(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
+        final int KEPT_ORES_PER_CHUNK = 2;
+        final ChunkPos currentChunkPos = new ChunkPos(blockPos);
 
-        // Calculate the chunk positions
-        ChunkPos currentChunkPos = new ChunkPos(blockPos);
-        Optional<ResourceKey<Block>> currentBlockResource = context.getLevel().getBlockState(blockPos).getBlockHolder().unwrapKey();
+        // Calculate the chunk's permissions
+        if (!SpreadFilter.trackedChunks.containsKey(currentChunkPos)) {
+            if (chanceOfSpawningPerChunk > randomSource.nextFloat()) {
+                // will spawn
+                HashSet<Block> newAllowedBlocks = new HashSet<>(LargePatchGeneratorConfig.getKRandomTargetedBlocks(randomSource, KEPT_ORES_PER_CHUNK));
+                SpreadFilter.trackedChunks.put(currentChunkPos, newAllowedBlocks);
+            } else {
+                // mark chunk as dead
+                SpreadFilter.trackedChunks.put(currentChunkPos, new HashSet<>());
+            }
+        }
+        HashSet<Block> allowedBlocks = SpreadFilter.trackedChunks.get(currentChunkPos);
+        if (allowedBlocks.isEmpty()) {
+            return false;
+        }
 
-        //context.topFeature()
+        // Make sure it's an ore
+        if (context.topFeature().isEmpty() || !(context.topFeature().get().feature().value().config() instanceof OreConfiguration oreConfiguration)) {
+            return false;
+        }
 
-        // Deny placement if chunk placement was not allowed
-        return true;
-        //if (currentBlockResource.isEmpty() || (allowedChunks.containsKey(currentChunkPos) && allowedChunks.get(currentChunkPos) != currentBlockResource.get().location())) {
-        //    return false;
-        //}
+        // check if valid
+        for (OreConfiguration.TargetBlockState targetBlockState : oreConfiguration.targetStates) {
+            if (allowedBlocks.contains(targetBlockState.state.getBlock())) {
+                return true;
+            }
+        }
 
-        // Compute odds for placement based on distance
-//        double distance = currentChunkPos.getMiddleBlockPosition(0).distSqr(spawnPos);
-//        double odds = Math.max(0, (distance * distanceMultiplier + baseOdd) - minDistance);
-//        boolean willPlace = randomSource.nextDouble() < odds;
-//
-//        if (!allowedChunks.containsKey(currentChunkPos)) {
-//            allowedChunks.put(currentChunkPos, currentBlockResource.get().location());
-//        }
-//
-//        return willPlace;
+        return false;
     }
 
     @Override
