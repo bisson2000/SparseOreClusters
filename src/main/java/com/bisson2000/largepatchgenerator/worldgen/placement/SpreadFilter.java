@@ -5,12 +5,15 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementFilter;
@@ -66,6 +69,16 @@ public class SpreadFilter extends PlacementFilter {
     protected boolean shouldPlace(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
         final int KEPT_ORES_PER_CHUNK = 2;
         final ChunkPos currentChunkPos = new ChunkPos(blockPos);
+        final Biome biome = context.getLevel().getLevel().getBiome(blockPos).get();
+
+//        ChunkSelectedBlocksCapability.getChunkSelectedBlocks(context.getLevel().getLevel(), currentChunkPos).ifPresent(iChunkSelectedBlocks -> {
+//            if (!(iChunkSelectedBlocks instanceof ChunkSelectedBlocks chunkSelectedBlocks)) return;
+//
+//            chunkSelectedBlocks.isBlockTargetedInBiome(biome, Blocks.IRON_ORE);
+//        });
+
+
+
 
         // Calculate the chunk's permissions
         if (!SpreadFilter.trackedChunks.containsKey(currentChunkPos)) {
