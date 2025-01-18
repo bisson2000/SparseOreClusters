@@ -6,18 +6,19 @@ import com.bisson2000.largepatchgenerator.worldgen.placement.CenterChunkPlacemen
 import com.bisson2000.largepatchgenerator.worldgen.placement.ModPlacementModifiers;
 import com.bisson2000.largepatchgenerator.worldgen.placement.SpreadFilter;
 import com.mojang.serialization.Codec;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.features.OreFeatures;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
-import net.minecraft.world.level.levelgen.placement.CountPlacement;
-import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraft.world.level.levelgen.placement.PlacementModifier;
-import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
+import net.minecraft.world.level.levelgen.placement.*;
 import net.minecraftforge.common.world.BiomeModifier;
 import net.minecraftforge.common.world.ModifiableBiomeInfo;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ModBiomeModifiers {
 
@@ -63,6 +65,9 @@ public class ModBiomeModifiers {
             //    default -> null;
             //};
 
+
+            // biome.tags().toList() *********************************************************************
+
             //if (list == null) return;
             //BiomeContext biomeContext = wrapSelectionContext(biome.unwrapKey(), builder);
             //BiomeProperties.Mutable mutableBiome = new MutableBiomeWrapped(builder);
@@ -72,11 +77,21 @@ public class ModBiomeModifiers {
             //        pair.getRight().accept(biomeContext, mutableBiome);
             //    }
             //}
-            GenerationStep.Decoration decoration = GenerationStep.Decoration.UNDERGROUND_ORES;
+            //Registries.DIMENSION_TYPE.
+
+            // The overworld generates its ore during GenerationStep.Decoration.UNDERGROUND_ORES
+            // The nether generates its ores during GenerationStep.Decoration.UNDERGROUND_DECORATION
+            // why
+            List<GenerationStep.Decoration> decorations = List.of(
+                    GenerationStep.Decoration.UNDERGROUND_ORES,
+                    GenerationStep.Decoration.UNDERGROUND_DECORATION
+            );
 
             switch (phase) {
                 case MODIFY:
-                    modifyPhase(builder, decoration);
+                    for (GenerationStep.Decoration decoration : decorations) {
+                        modifyPhase(builder, decoration);
+                    }
                     break;
             }
 
@@ -86,6 +101,34 @@ public class ModBiomeModifiers {
             //features.stream().findFirst()
 
             //Holder<PlacedFeature> replacedFeature = features.stream().filter(featureHolder -> featureHolder.is(new ResourceLocation("minecraft", "ore_iron_upper"))).findFirst().orElse(null)
+        }
+
+        private void registerBiomes(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
+
+//            MinecraftServer mc;
+//            mc.getAllLevels().forEach(l -> {
+//                var dim = l.dimensionType();
+//                l.getChunkSource().getGenerator().getBiomeSource().possibleBiomes().forEach(biomeHolder -> {
+//                    var feat = biomeHolder.get().getGenerationSettings().features().get(GenerationStep.Decoration.UNDERGROUND_ORES.ordinal());
+//                });
+//
+//            });
+
+//            for (Biome b : ForgeRegistries.BIOMES.getValues()) {
+//                for (var featureSet : b.getGenerationSettings().features()) {
+//                    for (Holder<PlacedFeature> placedFeature : featureSet.stream().toList()) {
+//                        if (placedFeature.get().feature().get().config() instanceof OreConfiguration oreConfig) {
+//                            oreConfig.targetStates.forEach(target -> {
+//                                if (LargePatchGeneratorConfig.isTargeted(target.state.getBlock())) {
+//                                    // Found a feature that uses the target block
+//                                    //System.out.println("Found placed feature for block: " + targetBlock);
+//                                    int i = 0;
+//                                }
+//                            });
+//                        }
+//                    }
+//                }
+//            }
         }
 
 //        private void removePhase(ModifiableBiomeInfo.BiomeInfo.Builder builder, GenerationStep.Decoration decoration) {
@@ -183,7 +226,7 @@ public class ModBiomeModifiers {
             newPlacementModifier.add(CenterChunkPlacement.center());
 
             // Make it rare
-            newPlacementModifier.add(new SpreadFilter(0.5f));
+            newPlacementModifier.add(new SpreadFilter(1.0f));
 
             // Get the new placement modifier, with a vein of NUMBER_OF_VEINS
             newPlacementModifier.add(CountPlacement.of(NUMBER_OF_VEINS));

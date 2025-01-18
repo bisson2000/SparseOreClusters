@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -27,6 +28,7 @@ public class LargePatchGeneratorConfig {
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> DENY_LISTED_BLOCKS;
     private static final ForgeConfigSpec.ConfigValue<List<? extends List<?>>> WEIGHT_LIST;
     private static HashMap<Block, ResourceLocation> TARGETED_BLOCKS = new HashMap<>();
+    private static HashMap<Biome, HashSet<Block>> TARGETED_BLOCKS_IN_BIOME = new HashMap<>();
 
     // default values
     private static final List<? extends List<?>> DEFAULT_WEIGHT_LIST = List.of(
@@ -59,34 +61,43 @@ public class LargePatchGeneratorConfig {
         SPEC = BUILDER.build();
     }
 
-    public static void SetTargetedBlocks(HashMap<Block, ResourceLocation> set) {
+    public static void setTargetedBlocks(HashMap<Block, ResourceLocation> set) {
         TARGETED_BLOCKS = set;
+    }
+
+    public static void setTargetedBlocksInBiome(HashMap<Biome, HashSet<Block>> set) {
+        TARGETED_BLOCKS_IN_BIOME = set;
+    }
+
+    public static boolean isTargetedInBiome(Biome biome, Block block) {
+        return TARGETED_BLOCKS_IN_BIOME.containsKey(biome) && TARGETED_BLOCKS_IN_BIOME.get(biome).contains(block);
     }
 
     public static boolean isTargeted(Block block) {
         return TARGETED_BLOCKS.containsKey(block);
     }
 
-    public static List<Block> getKRandomTargetedBlocks(@NotNull RandomSource randomSource, int k) {
+    public static List<Block> getKRandomTargetedBlocks(@NotNull RandomSource randomSource, int k, Biome biome) {
+        if (!TARGETED_BLOCKS_IN_BIOME.containsKey(biome)) return new ArrayList<>();
+
         final Double DEFAULT_WEIGHT = 1.0;
-        k = Math.max(0, Math.min(k, TARGETED_BLOCKS.size()));
+        final HashMap<String, Double> configuredWeights = getWeightList();
+        List<Block> blockList = new ArrayList<>(TARGETED_BLOCKS_IN_BIOME.get(biome));
+        k = Math.max(0, Math.min(k, blockList.size()));
 
-        var configuredWeights = getWeightList();
-
-        ArrayList<Block> blockList = new ArrayList<>(TARGETED_BLOCKS.keySet());
+        // Set up weight list
         ArrayList<Double> weightList = new ArrayList<>(blockList.size());
-
         for (Block block : blockList) {
             String searchedLocation = TARGETED_BLOCKS.get(block).toString();
             weightList.add(configuredWeights.getOrDefault(searchedLocation, DEFAULT_WEIGHT));
         }
 
-        ModRandomExtension.weightedShuffle(randomSource, blockList, weightList);
+        // shuffle
+        blockList = ModRandomExtension.weightedShuffle(randomSource, blockList, weightList);
         return blockList.subList(0, k);
-        //return TARGETED_BLOCKS.contains(block);
     }
 
-    public static HashMap<String, Double> getWeightList() {
+    private static HashMap<String, Double> getWeightList() {
         HashMap<String, Double> res = new HashMap<>();
         WEIGHT_LIST.get().stream()
                 .filter(obj -> obj != null && ((List<?>) obj).size() == 2) // Validate structure

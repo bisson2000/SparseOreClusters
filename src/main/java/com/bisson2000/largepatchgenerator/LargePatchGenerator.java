@@ -13,7 +13,10 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -31,6 +34,7 @@ public class LargePatchGenerator
 
         // Register the commonSetup method for modloading
         // Register the Deferred Register to the mod event bus so blocks get registered
+        modEventBus.addListener(LargePatchGenerator::commonSetup);
 
         ModPlacementModifiers.register(modEventBus);
         ModBiomeModifiers.init(modEventBus);
@@ -42,11 +46,17 @@ public class LargePatchGenerator
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, LargePatchGeneratorConfig.SPEC);
     }
 
+    public static void commonSetup(FMLLoadCompleteEvent event) {
+        // This is where we can safely access ForgeRegistries.BIOMES
+        //var a = ForgeRegistries.BIOMES.getValues();
+    }
+
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
     {
         // Do something when the server starts
+
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
