@@ -17,6 +17,10 @@ public class LargePatchGeneratorConfig {
     public static final ForgeConfigSpec SPEC;
 
     // Configs
+    public static final ForgeConfigSpec.ConfigValue<Integer> VARIETY_PER_CHUNK;
+    public static final ForgeConfigSpec.ConfigValue<Integer> VEINS_PER_CHUNK;
+    public static final ForgeConfigSpec.ConfigValue<Integer> ORES_PER_VEIN;
+    public static final ForgeConfigSpec.ConfigValue<Double> ODDS_OF_ORES_IN_CHUNK;
     public static final ForgeConfigSpec.ConfigValue<Boolean> AUTO_ORE_SEARCH;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> ALLOW_LISTED_BLOCKS;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> DENY_LISTED_BLOCKS;
@@ -38,6 +42,18 @@ public class LargePatchGeneratorConfig {
         AUTO_ORE_SEARCH = BUILDER.comment(" Search automatically for ores")
                 .define("Auto ore search", true);
 
+        VARIETY_PER_CHUNK = BUILDER.comment(" How many different ores can spawn in a chunk. Must be greater or equal than 0")
+                .defineInRange("Variety per chunk", 2, 0, Integer.MAX_VALUE);
+
+        VEINS_PER_CHUNK = BUILDER.comment(" How many veins can each ore have within a chunk. Must be greater or equal than 0")
+                .defineInRange("Veins per chunk", 1, 0, Integer.MAX_VALUE);
+
+        ORES_PER_VEIN = BUILDER.comment(" How many ores can a vein have. Must be greater or equal than 0")
+                .defineInRange("Ores per vein", 64, 0, Integer.MAX_VALUE);
+
+        ODDS_OF_ORES_IN_CHUNK = BUILDER.comment(" The odds of a chunk containing ores. Value should be between 0 and 1.\n" +
+                        " 0 means there won't be ores at all, while 1 means there will be ores in every chunks")
+                .defineInRange("Odds of ores in chunk", 0.2, 0, 2.0);
 
         ALLOW_LISTED_BLOCKS = BUILDER.comment(" Which blocks are allowed to have their generation modified. Write the block with modid:block_name")
                 .defineListAllowEmpty("Allowed blocks", Arrays.asList("minecraft:iron_ore", "minecraft:deepslate_iron_ore"), entry -> entry instanceof String);

@@ -29,11 +29,11 @@ public class SpreadFilter extends PlacementFilter {
 
     public static final Codec<SpreadFilter> CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
-                    Codec.FLOAT.fieldOf("chanceOfSpawningPerChunk").forGetter(filter -> filter.chanceOfSpawningPerChunk)
+                    Codec.DOUBLE.fieldOf("chanceOfSpawningPerChunk").forGetter(filter -> filter.chanceOfSpawningPerChunk)
             ).apply(instance, SpreadFilter::new)
     );
 
-    private final float chanceOfSpawningPerChunk;
+    private final double chanceOfSpawningPerChunk;
 
     // Static HashMap to track chunk positions
     public static final ConcurrentHashMap<ServerLevel, HashMap<ChunkPos, Tuple<Biome, HashSet<Block>>>> trackedChunks = new ConcurrentHashMap<>();
@@ -41,7 +41,7 @@ public class SpreadFilter extends PlacementFilter {
     // DEBUG
     // public static final ConcurrentHashMap<ServerLevel, ChunkPos> removedChunks = new ConcurrentHashMap<>();
 
-    public SpreadFilter(float chanceOfSpawningPerChunk) {
+    public SpreadFilter(double chanceOfSpawningPerChunk) {
         this.chanceOfSpawningPerChunk = chanceOfSpawningPerChunk;
     }
 
@@ -52,7 +52,7 @@ public class SpreadFilter extends PlacementFilter {
         final Biome biome = serverLevel.getBiome(blockPos).get();
 
         if (!trackedChunks.containsKey(serverLevel) || !trackedChunks.get(serverLevel).containsKey(currentChunkPos)) {
-            if (chanceOfSpawningPerChunk > randomSource.nextFloat()) {
+            if (chanceOfSpawningPerChunk > randomSource.nextDouble()) {
                 // will spawn
                 generateAllowedBlocksInChunk(context, randomSource, blockPos);
             } else {
@@ -97,7 +97,7 @@ public class SpreadFilter extends PlacementFilter {
      *
      * */
     private void generateAllowedBlocksInChunk(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
-        final int KEPT_ORES_PER_CHUNK = 2;
+        final int VARIETY_PER_CHUNK = LargePatchGeneratorConfig.VARIETY_PER_CHUNK.get();
 
         final ChunkPos currentChunkPos = new ChunkPos(blockPos);
         final ChunkAccess protoChunk = context.getLevel().getChunk(blockPos);
@@ -115,7 +115,7 @@ public class SpreadFilter extends PlacementFilter {
         final Biome biome = context.getLevel().getLevel().getBiome(randomPos).get();
 
         // get the allowed blocks
-        final HashSet<Block> allowedBlocks = new HashSet<>(LargePatchGeneratorConfig.getKRandomTargetedBlocks(randomSource, KEPT_ORES_PER_CHUNK, biome));
+        final HashSet<Block> allowedBlocks = new HashSet<>(LargePatchGeneratorConfig.getKRandomTargetedBlocks(randomSource, VARIETY_PER_CHUNK, biome));
 
         // Generate tuple
         final Tuple<Biome, HashSet<Block>> newTuple = new Tuple<>(biome, allowedBlocks);

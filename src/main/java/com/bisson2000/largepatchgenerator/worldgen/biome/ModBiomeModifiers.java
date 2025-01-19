@@ -84,8 +84,8 @@ public class ModBiomeModifiers {
         }
 
         private void replaceFeature(ModifiableBiomeInfo.BiomeInfo.Builder builder,  GenerationStep.Decoration decoration, Holder<PlacedFeature> replacedFeature) {
-            final int VEIN_SIZE = 64;
-            final int NUMBER_OF_VEINS = 1;
+            final int ORES_PER_VEIN = LargePatchGeneratorConfig.ORES_PER_VEIN.get();
+            final int VEINS_PER_CHUNK = LargePatchGeneratorConfig.VEINS_PER_CHUNK.get();
 
             if (replacedFeature == null) {
                 return;
@@ -114,15 +114,15 @@ public class ModBiomeModifiers {
             newPlacementModifier.add(CenterChunkPlacement.center());
 
             // Make it rare
-            newPlacementModifier.add(new SpreadFilter(1.0f));
+            newPlacementModifier.add(new SpreadFilter(LargePatchGeneratorConfig.ODDS_OF_ORES_IN_CHUNK.get()));
 
             // Get the new placement modifier, with a vein of NUMBER_OF_VEINS
-            newPlacementModifier.add(CountPlacement.of(NUMBER_OF_VEINS));
+            newPlacementModifier.add(CountPlacement.of(VEINS_PER_CHUNK));
 
 
             // make the veins huge
             ConfiguredFeature<?, ?> newConfiguration = null;
-            newConfiguration = new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(oreConfiguration.targetStates, VEIN_SIZE, oreConfiguration.discardChanceOnAirExposure));
+            newConfiguration = new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(oreConfiguration.targetStates, ORES_PER_VEIN, oreConfiguration.discardChanceOnAirExposure));
             // TODO: custom ore configuration
 
             // apply
