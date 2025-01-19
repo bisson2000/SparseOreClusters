@@ -62,7 +62,8 @@ public class LargePatchGeneratorConfig {
                 .defineListAllowEmpty("Denied blocks", Arrays.asList("minecraft:oak_log", "minecraft:acacia_log"), entry -> entry instanceof String);
 
         WEIGHT_LIST = BUILDER.comment(" A list of weights each ore has. The higher the weight, the more likely it is for the ore to appear.\n" +
-                        " Takes in pairs of values (modid:block_name, weight). The weight should be above 0. By default, all ores have a weight of 1.")
+                        " Takes in pairs of values (modid:block_name, weight). The weight should be above 0. By default, all ores have a weight of 1.\n " +
+                        "Make sure to write the weight as a floation point number. E.g.: writing \"1\n will not work, but \"1.0\" will.")
                 .defineList("Weight list", DEFAULT_WEIGHT_LIST, obj -> {
                     if (!(obj instanceof List<?> list) || list.size() != 2) return false;
                     if (!(list.get(1) instanceof Double weight)) return false;
