@@ -7,8 +7,12 @@ import com.bisson2000.largepatchgenerator.worldgen.placement.ModPlacementModifie
 import com.bisson2000.largepatchgenerator.worldgen.placement.SpreadFilter;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -48,12 +52,39 @@ public class ModBiomeModifiers {
             // The overworld generates its ore during GenerationStep.Decoration.UNDERGROUND_ORES
             // The nether generates its ores during GenerationStep.Decoration.UNDERGROUND_DECORATION
             // why
-            List<GenerationStep.Decoration> decorations = List.of(
+            final List<GenerationStep.Decoration> decorations = List.of(
                     GenerationStep.Decoration.UNDERGROUND_ORES,
                     GenerationStep.Decoration.UNDERGROUND_DECORATION
             );
 
             if (phase == Phase.MODIFY) {
+                Biome targetBiome = biome.get();
+
+                HashMap<Biome, HashSet<Block>> allowedBlocksInBiome = new HashMap<>();
+                // Classify blocks per biomes:
+                // We do this only once, when the world loads
+                // This is horrible and slow.
+                // Do not use targetBiome.getGenerationSettings().features()
+                for (GenerationStep.Decoration decoration : decorations) {
+                    for (Holder<PlacedFeature> placedFeatureHolder : builder.getGenerationSettings().getFeatures(decoration)) {
+                        if (placedFeatureHolder.get().feature().get().config() instanceof OreConfiguration oreConfiguration) {
+                            for (OreConfiguration.TargetBlockState targetBlockState : oreConfiguration.targetStates) {
+                                Block block = targetBlockState.state.getBlock();
+                                if (LargePatchGeneratorConfig.isTargeted(block)) {
+                                    HashSet<Block> set = allowedBlocksInBiome.getOrDefault(targetBiome, new HashSet<>());
+                                    set.add(block);
+                                    allowedBlocksInBiome.put(targetBiome, set);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // For debugging: event.getRegistryAccess().registryOrThrow(Registries.BIOME).getKey(allowedBlocksInBiome.keySet().stream().toList().get(7))
+                // Complete operation
+                LargePatchGeneratorConfig.addTargetedBlocksInBiome(allowedBlocksInBiome);
+
+                // Iterate over decorations where ores are placed.
                 for (GenerationStep.Decoration decoration : decorations) {
                     modifyPhase(builder, decoration);
                 }

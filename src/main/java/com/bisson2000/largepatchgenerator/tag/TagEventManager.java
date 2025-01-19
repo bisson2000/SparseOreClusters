@@ -88,7 +88,10 @@ public class TagEventManager {
 
         // For debugging: event.getRegistryAccess().registryOrThrow(Registries.BIOME).getKey(allowedBlocksInBiome.keySet().stream().toList().get(7))
         // Complete operation
+        // NOTE: THIS CONTAINS ONLY VANILLA BIOMES
         LargePatchGeneratorConfig.setTargetedBlocksInBiome(allowedBlocksInBiome);
+
+        // This contains all blocks
         LargePatchGeneratorConfig.setTargetedBlocks(targetList);
     }
 

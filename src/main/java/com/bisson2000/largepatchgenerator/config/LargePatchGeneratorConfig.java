@@ -82,8 +82,16 @@ public class LargePatchGeneratorConfig {
         TARGETED_BLOCKS_IN_BIOME = set;
     }
 
+    public static void addTargetedBlocksInBiome(HashMap<Biome, HashSet<Block>> set) {
+        TARGETED_BLOCKS_IN_BIOME.putAll(set);
+    }
+
     public static boolean isTargeted(Block block) {
         return TARGETED_BLOCKS.containsKey(block);
+    }
+
+    public static boolean isTargeted(Biome biome) {
+        return TARGETED_BLOCKS_IN_BIOME.containsKey(biome);
     }
 
     public static List<Block> getKRandomTargetedBlocks(@NotNull RandomSource randomSource, int k, Biome biome) {
