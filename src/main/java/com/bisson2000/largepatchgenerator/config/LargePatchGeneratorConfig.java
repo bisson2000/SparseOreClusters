@@ -42,18 +42,18 @@ public class LargePatchGeneratorConfig {
         AUTO_ORE_SEARCH = BUILDER.comment(" Search automatically for ores")
                 .define("Auto ore search", true);
 
-        VARIETY_PER_CHUNK = BUILDER.comment(" How many different ores can spawn in a chunk. Must be greater or equal than 0")
+        VARIETY_PER_CHUNK = BUILDER.comment(" How many different ores can spawn in a chunk")
                 .defineInRange("Variety per chunk", 2, 0, Integer.MAX_VALUE);
 
-        VEINS_PER_CHUNK = BUILDER.comment(" How many veins can each ore have within a chunk. Must be greater or equal than 0")
+        VEINS_PER_CHUNK = BUILDER.comment(" How many veins can each ore have within a chunk")
                 .defineInRange("Veins per chunk", 1, 0, Integer.MAX_VALUE);
 
-        ORES_PER_VEIN = BUILDER.comment(" How many ores can a vein have. Must be greater or equal than 0")
+        ORES_PER_VEIN = BUILDER.comment(" How many ores can a vein have")
                 .defineInRange("Ores per vein", 64, 0, Integer.MAX_VALUE);
 
         ODDS_OF_ORES_IN_CHUNK = BUILDER.comment(" The odds of a chunk containing ores. Value should be between 0 and 1.\n" +
                         " 0 means there won't be ores at all, while 1 means there will be ores in every chunks")
-                .defineInRange("Odds of ores in chunk", 0.2, 0, 2.0);
+                .defineInRange("Odds of ores in chunk", 0.2, 0.0, 1.0);
 
         ALLOW_LISTED_BLOCKS = BUILDER.comment(" Which blocks are allowed to have their generation modified. Write the block with modid:block_name")
                 .defineListAllowEmpty("Allowed blocks", Arrays.asList("minecraft:iron_ore", "minecraft:deepslate_iron_ore"), entry -> entry instanceof String);
@@ -62,8 +62,8 @@ public class LargePatchGeneratorConfig {
                 .defineListAllowEmpty("Denied blocks", Arrays.asList("minecraft:oak_log", "minecraft:acacia_log"), entry -> entry instanceof String);
 
         WEIGHT_LIST = BUILDER.comment(" A list of weights each ore has. The higher the weight, the more likely it is for the ore to appear.\n" +
-                        " Takes in pairs of values (modid:block_name, weight). The weight should be above 0. By default, all ores have a weight of 1.\n " +
-                        "Make sure to write the weight as a floation point number. E.g.: writing \"1\n will not work, but \"1.0\" will.")
+                        " Takes in pairs of values (modid:block_name, weight). The weight should be above 0. By default, all ores have a weight of 1.\n" +
+                        " Make sure to write the weight as a floation point number. E.g.: writing \"1\n will not work, but \"1.0\" will.")
                 .defineList("Weight list", DEFAULT_WEIGHT_LIST, obj -> {
                     if (!(obj instanceof List<?> list) || list.size() != 2) return false;
                     if (!(list.get(1) instanceof Double weight)) return false;
