@@ -100,6 +100,9 @@ public class LargePatchGeneratorConfig {
         final Double DEFAULT_WEIGHT = 1.0;
         final HashMap<String, Double> configuredWeights = getWeightList();
         List<Block> blockList = new ArrayList<>(TARGETED_BLOCKS_IN_BIOME.get(biome));
+
+        // The set is not ordered by default. Without this sort, the generation would be different across generations with the same seed.
+        blockList.sort(Comparator.comparing(Block::getDescriptionId));
         k = Math.max(0, Math.min(k, blockList.size()));
 
         // Set up weight list
