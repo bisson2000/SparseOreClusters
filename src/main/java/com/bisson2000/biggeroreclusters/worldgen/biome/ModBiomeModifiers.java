@@ -1,15 +1,12 @@
-package com.bisson2000.largepatchgenerator.worldgen.biome;
+package com.bisson2000.biggeroreclusters.worldgen.biome;
 
-import com.bisson2000.largepatchgenerator.LargePatchGenerator;
-import com.bisson2000.largepatchgenerator.config.LargePatchGeneratorConfig;
-import com.bisson2000.largepatchgenerator.worldgen.placement.CenterChunkPlacement;
-import com.bisson2000.largepatchgenerator.worldgen.placement.ModPlacementModifiers;
-import com.bisson2000.largepatchgenerator.worldgen.placement.SpreadFilter;
+import com.bisson2000.biggeroreclusters.BiggerOreClusters;
+import com.bisson2000.biggeroreclusters.config.BiggerOreClustersConfig;
+import com.bisson2000.biggeroreclusters.worldgen.placement.CenterChunkPlacement;
+import com.bisson2000.biggeroreclusters.worldgen.placement.ModPlacementModifiers;
+import com.bisson2000.biggeroreclusters.worldgen.placement.SpreadFilter;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
@@ -37,7 +34,7 @@ public class ModBiomeModifiers {
     public static void init(IEventBus modEventBus) {
         modEventBus.<RegisterEvent>addListener(event -> {
             event.register(ForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, registry -> {
-                ResourceLocation resourceLocation = new ResourceLocation(LargePatchGenerator.MOD_ID, "none_biome_mod_codec");
+                ResourceLocation resourceLocation = new ResourceLocation(BiggerOreClusters.MOD_ID, "none_biome_mod_codec");
                 noneBiomeModCodec = Codec.unit(BiomeModifierImpl.INSTANCE);
                 registry.register(resourceLocation, noneBiomeModCodec);
             });
@@ -70,7 +67,7 @@ public class ModBiomeModifiers {
                         if (placedFeatureHolder.get().feature().get().config() instanceof OreConfiguration oreConfiguration) {
                             for (OreConfiguration.TargetBlockState targetBlockState : oreConfiguration.targetStates) {
                                 Block block = targetBlockState.state.getBlock();
-                                if (LargePatchGeneratorConfig.isTargeted(block)) {
+                                if (BiggerOreClustersConfig.isTargeted(block)) {
                                     HashSet<Block> set = allowedBlocksInBiome.getOrDefault(targetBiome, new HashSet<>());
                                     set.add(block);
                                     allowedBlocksInBiome.put(targetBiome, set);
@@ -82,7 +79,7 @@ public class ModBiomeModifiers {
 
                 // For debugging: event.getRegistryAccess().registryOrThrow(Registries.BIOME).getKey(allowedBlocksInBiome.keySet().stream().toList().get(7))
                 // Complete operation
-                LargePatchGeneratorConfig.addTargetedBlocksInBiome(allowedBlocksInBiome);
+                BiggerOreClustersConfig.addTargetedBlocksInBiome(allowedBlocksInBiome);
 
                 // Iterate over decorations where ores are placed.
                 for (GenerationStep.Decoration decoration : decorations) {
@@ -107,7 +104,7 @@ public class ModBiomeModifiers {
             if (featureHolder.value().feature().value().config() instanceof OreConfiguration oreConfiguration) {
                 boolean match = !oreConfiguration.targetStates.isEmpty();
                 for (OreConfiguration.TargetBlockState targetState : oreConfiguration.targetStates) {
-                    match = match && LargePatchGeneratorConfig.isTargeted(targetState.state.getBlock());
+                    match = match && BiggerOreClustersConfig.isTargeted(targetState.state.getBlock());
                 }
                 return match;
             }
@@ -115,8 +112,8 @@ public class ModBiomeModifiers {
         }
 
         private void replaceFeature(ModifiableBiomeInfo.BiomeInfo.Builder builder,  GenerationStep.Decoration decoration, Holder<PlacedFeature> replacedFeature) {
-            final int ORES_PER_VEIN = LargePatchGeneratorConfig.ORES_PER_VEIN.get();
-            final int VEINS_PER_CHUNK = LargePatchGeneratorConfig.VEINS_PER_CHUNK.get();
+            final int ORES_PER_VEIN = BiggerOreClustersConfig.ORES_PER_VEIN.get();
+            final int VEINS_PER_CHUNK = BiggerOreClustersConfig.VEINS_PER_CHUNK.get();
 
             if (replacedFeature == null) {
                 return;
@@ -145,7 +142,7 @@ public class ModBiomeModifiers {
             newPlacementModifier.add(CenterChunkPlacement.center());
 
             // Make it rare
-            newPlacementModifier.add(new SpreadFilter(LargePatchGeneratorConfig.ODDS_OF_ORES_IN_CHUNK.get()));
+            newPlacementModifier.add(new SpreadFilter(BiggerOreClustersConfig.ODDS_OF_ORES_IN_CHUNK.get()));
 
             // Get the new placement modifier, with a vein of NUMBER_OF_VEINS
             newPlacementModifier.add(CountPlacement.of(VEINS_PER_CHUNK));

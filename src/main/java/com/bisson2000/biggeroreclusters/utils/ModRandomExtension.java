@@ -1,4 +1,4 @@
-package com.bisson2000.largepatchgenerator.utils;
+package com.bisson2000.biggeroreclusters.utils;
 
 import net.minecraft.util.RandomSource;
 

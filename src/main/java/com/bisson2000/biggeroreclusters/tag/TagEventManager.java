@@ -1,7 +1,7 @@
-package com.bisson2000.largepatchgenerator.tag;
+package com.bisson2000.biggeroreclusters.tag;
 
-import com.bisson2000.largepatchgenerator.LargePatchGenerator;
-import com.bisson2000.largepatchgenerator.config.LargePatchGeneratorConfig;
+import com.bisson2000.biggeroreclusters.BiggerOreClusters;
+import com.bisson2000.biggeroreclusters.config.BiggerOreClustersConfig;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
@@ -20,7 +20,7 @@ import net.minecraftforge.registries.tags.ITagManager;
 
 import java.util.*;
 
-@Mod.EventBusSubscriber(modid = LargePatchGenerator.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(modid = BiggerOreClusters.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class TagEventManager {
 
     @SubscribeEvent
@@ -29,14 +29,14 @@ public class TagEventManager {
             return;
         }
 
-        final Set<String> whitelist = new HashSet<>(LargePatchGeneratorConfig.ALLOW_LISTED_BLOCKS.get());
-        final Set<String> blacklist = new HashSet<>(LargePatchGeneratorConfig.DENY_LISTED_BLOCKS.get());
+        final Set<String> whitelist = new HashSet<>(BiggerOreClustersConfig.ALLOW_LISTED_BLOCKS.get());
+        final Set<String> blacklist = new HashSet<>(BiggerOreClustersConfig.DENY_LISTED_BLOCKS.get());
 
         HashMap<Block, ResourceLocation> targetList = new HashMap<>();
         ITagManager<Block> tagManager = ForgeRegistries.BLOCKS.tags();
 
         // Search by #forge:ore tag
-        if (LargePatchGeneratorConfig.AUTO_ORE_SEARCH.get() && tagManager != null) {
+        if (BiggerOreClustersConfig.AUTO_ORE_SEARCH.get() && tagManager != null) {
             tagManager.getTag(BlockTags.create(new ResourceLocation("forge", "ores"))).forEach(b -> {
                 b.defaultBlockState().getBlockHolder().unwrapKey().ifPresent(k -> {
                     String name = k.location().toString();
@@ -52,7 +52,7 @@ public class TagEventManager {
             ResourceKey<Block> resourceKey = entry.getKey();
             String name = resourceKey.location().toString();
             boolean match = whitelist.contains(name);
-            if (LargePatchGeneratorConfig.AUTO_ORE_SEARCH.get()) {
+            if (BiggerOreClustersConfig.AUTO_ORE_SEARCH.get()) {
                 match = match || name.contains("_ore");
             }
             match = match && !blacklist.contains(name);
@@ -89,10 +89,10 @@ public class TagEventManager {
         // For debugging: event.getRegistryAccess().registryOrThrow(Registries.BIOME).getKey(allowedBlocksInBiome.keySet().stream().toList().get(7))
         // Complete operation
         // NOTE: THIS CONTAINS ONLY VANILLA BIOMES
-        LargePatchGeneratorConfig.setTargetedBlocksInBiome(allowedBlocksInBiome);
+        BiggerOreClustersConfig.setTargetedBlocksInBiome(allowedBlocksInBiome);
 
         // This contains all blocks
-        LargePatchGeneratorConfig.setTargetedBlocks(targetList);
+        BiggerOreClustersConfig.setTargetedBlocks(targetList);
     }
 
 }

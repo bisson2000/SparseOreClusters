@@ -1,7 +1,7 @@
-package com.bisson2000.largepatchgenerator.worldgen.placement;
+package com.bisson2000.biggeroreclusters.worldgen.placement;
 
-import com.bisson2000.largepatchgenerator.LargePatchGenerator;
-import com.bisson2000.largepatchgenerator.config.LargePatchGeneratorConfig;
+import com.bisson2000.biggeroreclusters.BiggerOreClusters;
+import com.bisson2000.biggeroreclusters.config.BiggerOreClustersConfig;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
@@ -97,7 +97,7 @@ public class SpreadFilter extends PlacementFilter {
      *
      * */
     private void generateAllowedBlocksInChunk(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
-        final int VARIETY_PER_CHUNK = LargePatchGeneratorConfig.VARIETY_PER_CHUNK.get();
+        final int VARIETY_PER_CHUNK = BiggerOreClustersConfig.VARIETY_PER_CHUNK.get();
 
         final ChunkPos currentChunkPos = new ChunkPos(blockPos);
         final ChunkAccess protoChunk = context.getLevel().getChunk(blockPos);
@@ -115,7 +115,7 @@ public class SpreadFilter extends PlacementFilter {
         final Biome biome = context.getLevel().getLevel().getBiome(randomPos).get();
 
         // get the allowed blocks
-        final HashSet<Block> allowedBlocks = new HashSet<>(LargePatchGeneratorConfig.getKRandomTargetedBlocks(randomSource, VARIETY_PER_CHUNK, biome));
+        final HashSet<Block> allowedBlocks = new HashSet<>(BiggerOreClustersConfig.getKRandomTargetedBlocks(randomSource, VARIETY_PER_CHUNK, biome));
 
         // Generate tuple
         final Tuple<Biome, HashSet<Block>> newTuple = new Tuple<>(biome, allowedBlocks);
@@ -159,7 +159,7 @@ public class SpreadFilter extends PlacementFilter {
      * Therefore, we exploit this event.
      *
      * */
-    @Mod.EventBusSubscriber(modid = LargePatchGenerator.MOD_ID)
+    @Mod.EventBusSubscriber(modid = BiggerOreClusters.MOD_ID)
     private static class EventHandler {
         @SubscribeEvent
         public static void attachChunkCapabilities(final AttachCapabilitiesEvent<LevelChunk> event) {

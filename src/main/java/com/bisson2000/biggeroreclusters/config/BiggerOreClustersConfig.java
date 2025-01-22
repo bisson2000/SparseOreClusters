@@ -1,6 +1,6 @@
-package com.bisson2000.largepatchgenerator.config;
+package com.bisson2000.biggeroreclusters.config;
 
-import com.bisson2000.largepatchgenerator.utils.ModRandomExtension;
+import com.bisson2000.biggeroreclusters.utils.ModRandomExtension;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 
-public class LargePatchGeneratorConfig {
+public class BiggerOreClustersConfig {
 
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec SPEC;

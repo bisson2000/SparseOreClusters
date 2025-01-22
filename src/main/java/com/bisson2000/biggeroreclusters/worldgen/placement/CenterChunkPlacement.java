@@ -1,4 +1,4 @@
-package com.bisson2000.largepatchgenerator.worldgen.placement;
+package com.bisson2000.biggeroreclusters.worldgen.placement;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
