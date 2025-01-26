@@ -130,6 +130,7 @@ repositories {
         name = 'tterrag maven'
         url = 'https://maven.tterrag.com/'
     }
+
     // JEI
     maven {
         // location of the maven that hosts JEI files before January 2023
@@ -141,6 +142,7 @@ repositories {
         name = "Jared's maven"
         url = "https://maven.blamejared.com/"
     }
+    // mekanism
     maven {
         // location of a maven mirror for JEI files, as a fallback
         name = "ModMaven"
@@ -181,6 +183,15 @@ dependencies {
     implementation(fg.deobf("com.simibubi.create:create-${create_minecraft_version}:${create_version}:slim") { transitive = false })
     implementation(fg.deobf("com.jozufozu.flywheel:flywheel-forge-${flywheel_minecraft_version}:${flywheel_version}"))
     implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}"))
+
+    // mekanism
+    compileOnly "mekanism:Mekanism:${mekanism_version}:api"
+
+    // If you want to test/use Mekanism & its modules during `runClient` invocation, use the following
+    runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}")// Mekanism
+    runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}:additions")// Mekanism: Additions
+    runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}:generators")// Mekanism: Generators
+    runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}:tools")// Mekanism: Tools
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

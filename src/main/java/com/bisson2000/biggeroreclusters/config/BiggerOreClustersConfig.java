@@ -43,7 +43,7 @@ public class BiggerOreClustersConfig {
                 .define("Auto ore search", true);
 
         VARIETY_PER_CHUNK = BUILDER.comment(" How many different ores can spawn in a chunk")
-                .defineInRange("Variety per chunk", 2, 0, Integer.MAX_VALUE);
+                .defineInRange("Variety per chunk", 1, 0, Integer.MAX_VALUE);
 
         VEINS_PER_CHUNK = BUILDER.comment(" How many veins can each ore have within a chunk")
                 .defineInRange("Veins per chunk", 1, 0, Integer.MAX_VALUE);
