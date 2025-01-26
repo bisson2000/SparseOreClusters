@@ -21,7 +21,7 @@ public class BiggerOreClustersConfig {
 
     // Configs
     public static final ForgeConfigSpec.ConfigValue<Integer> VARIETY_PER_CHUNK;
-    public static final ForgeConfigSpec.ConfigValue<Double> ODDS_OF_ORES_IN_CHUNK;
+    public static final ForgeConfigSpec.ConfigValue<Double> ODDS_OF_FEATURES_IN_CHUNK;
     private static final ForgeConfigSpec.ConfigValue<List<? extends List<?>>> WEIGHT_LIST;
     public static HashMap<Biome, HashSet<Holder<PlacedFeature>>> TARGETED_FEATURES_IN_BIOME = new HashMap<>();
 
@@ -37,15 +37,15 @@ public class BiggerOreClustersConfig {
     static {
         BUILDER.push(" Configs for Large Patch Generator");
 
-        VARIETY_PER_CHUNK = BUILDER.comment(" How many different ores can spawn in a chunk")
+        VARIETY_PER_CHUNK = BUILDER.comment(" How many different features can spawn in a chunk")
                 .defineInRange("Variety per chunk", 1, 0, Integer.MAX_VALUE);
 
-        ODDS_OF_ORES_IN_CHUNK = BUILDER.comment(" The odds of a chunk containing ores. Value should be between 0 and 1.\n" +
-                        " 0 means there won't be ores at all, while 1 means there will be ores in every chunks")
-                .defineInRange("Odds of ores in chunk", 1, 0.0, 1.0);
+        ODDS_OF_FEATURES_IN_CHUNK = BUILDER.comment(" The odds of a chunk containing features. Value should be between 0 and 1.\n" +
+                        " 0 means there won't be any features at all, while 1 means there will be a feature in every chunk")
+                .defineInRange("Odds of features in chunk", 1, 0.0, 1.0);
 
-        WEIGHT_LIST = BUILDER.comment(" A list of weights each ore has. The higher the weight, the more likely it is for the ore to appear.\n" +
-                        " Takes in pairs of values (modid:block_name, weight). The weight should be above 0. By default, all ores have a weight of 1.\n" +
+        WEIGHT_LIST = BUILDER.comment(" A list of weights each feature has. The higher the weight, the more likely it is for the feature to appear.\n" +
+                        " Takes in pairs of values (modid:block_name, weight). The weight should be above 0. By default, all features have a weight of 1.\n" +
                         " Make sure to write the weight as a floation point number. E.g.: writing \"1\n will not work, but \"1.0\" will.")
                 .defineList("Weight list", DEFAULT_WEIGHT_LIST, obj -> {
                     if (!(obj instanceof List<?> list) || list.size() != 2) return false;

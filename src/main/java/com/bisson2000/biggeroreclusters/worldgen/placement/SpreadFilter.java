@@ -47,7 +47,7 @@ public class SpreadFilter extends PlacementFilter {
         final Biome biome = serverLevel.getBiome(blockPos).get();
 
         if (!trackedChunks.containsKey(serverLevel) || !trackedChunks.get(serverLevel).containsKey(currentChunkPos)) {
-            if (BiggerOreClustersConfig.ODDS_OF_ORES_IN_CHUNK.get() > randomSource.nextDouble()) {
+            if (BiggerOreClustersConfig.ODDS_OF_FEATURES_IN_CHUNK.get() > randomSource.nextDouble()) {
                 // will spawn
                 generateAllowedFeaturesInChunk(context, randomSource, blockPos);
             } else {
