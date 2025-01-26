@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.placement.*;
 import net.minecraftforge.common.world.BiomeModifier;
@@ -101,7 +102,8 @@ public class ModBiomeModifiers {
         }
 
         private static boolean isPlacedFeatureMatch(Holder<PlacedFeature> featureHolder) {
-            if (featureHolder.value().feature().value().config() instanceof OreConfiguration oreConfiguration) {
+            FeatureConfiguration config = featureHolder.value().feature().value().config();
+            if (config instanceof OreConfiguration oreConfiguration) {
                 boolean match = !oreConfiguration.targetStates.isEmpty();
                 for (OreConfiguration.TargetBlockState targetState : oreConfiguration.targetStates) {
                     match = match && BiggerOreClustersConfig.isTargeted(targetState.state.getBlock());
