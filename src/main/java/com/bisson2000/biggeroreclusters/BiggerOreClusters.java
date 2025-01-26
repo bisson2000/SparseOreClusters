@@ -1,11 +1,14 @@
 package com.bisson2000.biggeroreclusters;
 
+import com.bisson2000.biggeroreclusters.command.CommandHandler;
+import com.bisson2000.biggeroreclusters.command.ListOresCommand;
 import com.bisson2000.biggeroreclusters.config.BiggerOreClustersConfig;
 import com.bisson2000.biggeroreclusters.worldgen.biome.ModBiomeModifiers;
 import com.bisson2000.biggeroreclusters.worldgen.placement.ModPlacementModifiers;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -46,7 +49,13 @@ public class BiggerOreClusters
     public void onServerStarting(ServerStartingEvent event)
     {
         // Do something when the server starts
+    }
 
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event)
+    {
+        // Commands
+        CommandHandler.commandHandler.onRegisterCommandsEvent(event);
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

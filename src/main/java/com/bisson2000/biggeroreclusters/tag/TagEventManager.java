@@ -67,24 +67,24 @@ public class TagEventManager {
         // Classify blocks per biomes:
         // We do this only once, when the world loads
         // This is horrible and slow.
-        Set<Map.Entry<ResourceKey<Biome>, Biome>> biomeEntries = event.getRegistryAccess().registryOrThrow(Registries.BIOME).entrySet();
-        for (Map.Entry<ResourceKey<Biome>, Biome> biomeEntry : biomeEntries) {
-            Biome biome = biomeEntry.getValue();
-            for (HolderSet<PlacedFeature> featureSet : biome.getGenerationSettings().features()) {
-                for (Holder<PlacedFeature> placedFeatureHolder : featureSet) {
-                    if (placedFeatureHolder.get().feature().get().config() instanceof OreConfiguration oreConfiguration) {
-                        for (OreConfiguration.TargetBlockState targetBlockState : oreConfiguration.targetStates) {
-                            Block block = targetBlockState.state.getBlock();
-                            if (targetList.containsKey(block)) {
-                                HashSet<Block> set = allowedBlocksInBiome.getOrDefault(biome, new HashSet<>());
-                                set.add(block);
-                                allowedBlocksInBiome.put(biome, set);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //Set<Map.Entry<ResourceKey<Biome>, Biome>> biomeEntries = event.getRegistryAccess().registryOrThrow(Registries.BIOME).entrySet();
+        //for (Map.Entry<ResourceKey<Biome>, Biome> biomeEntry : biomeEntries) {
+        //    Biome biome = biomeEntry.getValue();
+        //    for (HolderSet<PlacedFeature> featureSet : biome.getGenerationSettings().features()) {
+        //        for (Holder<PlacedFeature> placedFeatureHolder : featureSet) {
+        //            if (placedFeatureHolder.get().feature().get().config() instanceof OreConfiguration oreConfiguration) {
+        //                for (OreConfiguration.TargetBlockState targetBlockState : oreConfiguration.targetStates) {
+        //                    Block block = targetBlockState.state.getBlock();
+        //                    if (targetList.containsKey(block)) {
+        //                        HashSet<Block> set = allowedBlocksInBiome.getOrDefault(biome, new HashSet<>());
+        //                        set.add(block);
+        //                        allowedBlocksInBiome.put(biome, set);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         // For debugging: event.getRegistryAccess().registryOrThrow(Registries.BIOME).getKey(allowedBlocksInBiome.keySet().stream().toList().get(7))
         // Complete operation

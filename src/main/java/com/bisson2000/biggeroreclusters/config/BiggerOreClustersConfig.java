@@ -25,7 +25,7 @@ public class BiggerOreClustersConfig {
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> ALLOW_LISTED_BLOCKS;
     public static final ForgeConfigSpec.ConfigValue<List<? extends String>> DENY_LISTED_BLOCKS;
     private static final ForgeConfigSpec.ConfigValue<List<? extends List<?>>> WEIGHT_LIST;
-    private static HashMap<Block, ResourceLocation> TARGETED_BLOCKS = new HashMap<>();
+    public static HashMap<Block, ResourceLocation> TARGETED_BLOCKS = new HashMap<>();
     private static HashMap<Biome, HashSet<Block>> TARGETED_BLOCKS_IN_BIOME = new HashMap<>();
 
     // default values
