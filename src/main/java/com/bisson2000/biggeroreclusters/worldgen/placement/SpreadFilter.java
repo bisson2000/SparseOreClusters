@@ -5,6 +5,7 @@ import com.bisson2000.biggeroreclusters.config.BiggerOreClustersConfig;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Tuple;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementFilter;
 import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
@@ -24,26 +26,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class SpreadFilter extends PlacementFilter {
 
-    public static final Codec<SpreadFilter> CODEC = RecordCodecBuilder.create(
-            instance -> instance.group(
-                    Codec.DOUBLE.fieldOf("chanceOfSpawningPerChunk").forGetter(filter -> filter.chanceOfSpawningPerChunk)
-            ).apply(instance, SpreadFilter::new)
-    );
-
-    private final double chanceOfSpawningPerChunk;
+    private static final SpreadFilter INSTANCE = new SpreadFilter();
+    public static final Codec<SpreadFilter> CODEC = Codec.unit(() -> INSTANCE);
 
     // Static HashMap to track chunk positions
-    public static final ConcurrentHashMap<ServerLevel, HashMap<ChunkPos, Tuple<Biome, HashSet<Block>>>> trackedChunks = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<ServerLevel, HashMap<ChunkPos, Tuple<Biome, HashSet<Holder<PlacedFeature>>>>> trackedChunks = new ConcurrentHashMap<>();
 
     // DEBUG
     // public static final ConcurrentHashMap<ServerLevel, ChunkPos> removedChunks = new ConcurrentHashMap<>();
 
-    public SpreadFilter(double chanceOfSpawningPerChunk) {
-        this.chanceOfSpawningPerChunk = chanceOfSpawningPerChunk;
-    }
 
     @Override
     protected boolean shouldPlace(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
@@ -52,9 +47,9 @@ public class SpreadFilter extends PlacementFilter {
         final Biome biome = serverLevel.getBiome(blockPos).get();
 
         if (!trackedChunks.containsKey(serverLevel) || !trackedChunks.get(serverLevel).containsKey(currentChunkPos)) {
-            if (chanceOfSpawningPerChunk > randomSource.nextDouble()) {
+            if (BiggerOreClustersConfig.ODDS_OF_ORES_IN_CHUNK.get() > randomSource.nextDouble()) {
                 // will spawn
-                generateAllowedBlocksInChunk(context, randomSource, blockPos);
+                generateAllowedFeaturesInChunk(context, randomSource, blockPos);
             } else {
                 // mark chunk as dead, with no availabilities
                 generateDeadChunk(context, blockPos, biome);
@@ -66,24 +61,19 @@ public class SpreadFilter extends PlacementFilter {
 //        }
 
         Biome allowedBiome = trackedChunks.get(serverLevel).get(currentChunkPos).getA();
-        HashSet<Block> allowedBlocks = trackedChunks.get(serverLevel).get(currentChunkPos).getB();
-        if (allowedBiome != biome || allowedBlocks.isEmpty()) {
+        HashSet<Holder<PlacedFeature>> allowedHoldingFeatures = trackedChunks.get(serverLevel).get(currentChunkPos).getB();
+        if (allowedBiome != biome || allowedHoldingFeatures.isEmpty()) {
             return false;
         }
 
-        // Make sure it's an ore
-        if (context.topFeature().isEmpty() || !(context.topFeature().get().feature().value().config() instanceof OreConfiguration oreConfiguration)) {
+        // Make sure it's a valid feature
+        HashSet<PlacedFeature> allowedFeatures = allowedHoldingFeatures.stream().map(Holder::value).collect(Collectors.toCollection(HashSet::new));
+        if (context.topFeature().isEmpty() || !allowedFeatures.contains(context.topFeature().get())) {
             return false;
         }
 
-        // check if valid
-        for (OreConfiguration.TargetBlockState targetBlockState : oreConfiguration.targetStates) {
-            if (allowedBlocks.contains(targetBlockState.state.getBlock())) {
-                return true;
-            }
-        }
-
-        return false;
+        // valid feature
+        return true;
     }
 
     /**
@@ -96,7 +86,7 @@ public class SpreadFilter extends PlacementFilter {
      * This algorithm is totally arbitrary, but allows for checks of vertical biomes and minimize starving some biomes
      *
      * */
-    private void generateAllowedBlocksInChunk(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
+    private void generateAllowedFeaturesInChunk(@NotNull PlacementContext context, @NotNull RandomSource randomSource, @NotNull BlockPos blockPos) {
         final int VARIETY_PER_CHUNK = BiggerOreClustersConfig.VARIETY_PER_CHUNK.get();
 
         final ChunkPos currentChunkPos = new ChunkPos(blockPos);
@@ -114,17 +104,17 @@ public class SpreadFilter extends PlacementFilter {
         final BlockPos randomPos = new BlockPos(currentChunkPos.getMiddleBlockX(), randomY, currentChunkPos.getMiddleBlockZ());
         final Biome biome = context.getLevel().getLevel().getBiome(randomPos).get();
 
-        // get the allowed blocks
-        final HashSet<Block> allowedBlocks = new HashSet<>(BiggerOreClustersConfig.getKRandomTargetedBlocks(randomSource, VARIETY_PER_CHUNK, biome));
+        // get the allowed features
+        final HashSet<Holder<PlacedFeature>> allowedFeatures = new HashSet<>(BiggerOreClustersConfig.getKRandomTargets(randomSource, VARIETY_PER_CHUNK, biome));
 
         // Generate tuple
-        final Tuple<Biome, HashSet<Block>> newTuple = new Tuple<>(biome, allowedBlocks);
+        final Tuple<Biome, HashSet<Holder<PlacedFeature>>> newTuple = new Tuple<>(biome, allowedFeatures);
 
         // put new value
         if (trackedChunks.containsKey(serverLevel)) {
             trackedChunks.get(serverLevel).put(currentChunkPos, newTuple);
         } else {
-            HashMap<ChunkPos, Tuple<Biome, HashSet<Block>>> innerMap = new HashMap<>();
+            HashMap<ChunkPos, Tuple<Biome, HashSet<Holder<PlacedFeature>>>> innerMap = new HashMap<>();
             innerMap.put(currentChunkPos, newTuple);
             trackedChunks.put(serverLevel, innerMap);
         }
@@ -135,13 +125,13 @@ public class SpreadFilter extends PlacementFilter {
         final ServerLevel serverLevel = context.getLevel().getLevel();
 
         // Generate tuple
-        final Tuple<Biome, HashSet<Block>> deadTuple = new Tuple<>(biome, new HashSet<>());
+        final Tuple<Biome, HashSet<Holder<PlacedFeature>>> deadTuple = new Tuple<>(biome, new HashSet<>());
 
         // put new value
         if (trackedChunks.containsKey(serverLevel)) {
             trackedChunks.get(serverLevel).put(currentChunkPos, deadTuple);
         } else {
-            HashMap<ChunkPos, Tuple<Biome, HashSet<Block>>> innerMap = new HashMap<>();
+            HashMap<ChunkPos, Tuple<Biome, HashSet<Holder<PlacedFeature>>>> innerMap = new HashMap<>();
             innerMap.put(currentChunkPos, deadTuple);
             trackedChunks.put(serverLevel, innerMap);
         }

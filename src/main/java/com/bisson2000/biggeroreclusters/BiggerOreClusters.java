@@ -1,7 +1,6 @@
 package com.bisson2000.biggeroreclusters;
 
 import com.bisson2000.biggeroreclusters.command.CommandHandler;
-import com.bisson2000.biggeroreclusters.command.ListOresCommand;
 import com.bisson2000.biggeroreclusters.config.BiggerOreClustersConfig;
 import com.bisson2000.biggeroreclusters.worldgen.biome.ModBiomeModifiers;
 import com.bisson2000.biggeroreclusters.worldgen.placement.ModPlacementModifiers;
