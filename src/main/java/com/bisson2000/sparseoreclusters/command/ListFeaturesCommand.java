@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 import java.util.HashSet;
+import java.util.List;
 
 public class ListFeaturesCommand {
     public static ArgumentBuilder<CommandSourceStack, ?> register() {
@@ -25,7 +26,14 @@ public class ListFeaturesCommand {
             uniqueFeatures.addAll(placedFeatures);
         }
 
-        for (Holder<PlacedFeature> placedFeature : uniqueFeatures) {
+        List<Holder<PlacedFeature>> sortedFeatures = uniqueFeatures.stream().sorted((o1, o2) -> {
+            String str1 = o1.unwrapKey().isPresent() ? o1.unwrapKey().get().location().toString() : "";
+            String str2 = o2.unwrapKey().isPresent() ? o2.unwrapKey().get().location().toString() : "";
+            return str1.compareTo(str2);
+        }).toList();
+
+
+        for (Holder<PlacedFeature> placedFeature : sortedFeatures) {
             if (placedFeature.unwrapKey().isPresent()) {
                 context.getSource().sendSuccess(() -> Component.literal(placedFeature.unwrapKey().get().location().toString()), true);
             }

@@ -9,6 +9,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -41,6 +42,13 @@ public class SparseOreClusters
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         context.registerConfig(ModConfig.Type.COMMON, SparseOreClustersConfig.SPEC);
+    }
+
+    @SubscribeEvent
+    public void onServerStopped(ServerStoppedEvent event)
+    {
+        SparseOreClustersConfig.TARGETED_FEATURES_IN_BIOME.clear();
+        // Do something when the server starts
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
