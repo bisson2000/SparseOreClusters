@@ -7,7 +7,7 @@ DEV Installation information
 
 Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
 
-JAVA 17 IS REQUIRED. Make sure your JAVA_HOME and your PATH in your environement variables
+JAVA 17 IS REQUIRED FOR 1.20.1. Make sure your JAVA_HOME and your PATH in your environment variables
 point to a java 17 jdk. You may have to restart your computer after changing it to JAVA 17.
 
 Step 1: Open your command-line and browse to the folder where you cloned the project.
