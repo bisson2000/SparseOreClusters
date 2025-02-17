@@ -32,7 +32,7 @@ public class SparseOreClustersConfig {
 
     // definitions
     static {
-        BUILDER.push(" Configs for Sparse Ore Clusters");
+        BUILDER.push("Configs for Sparse Ore Clusters");
 
         VARIETY_PER_CHUNK = BUILDER.comment(" How many different features can spawn in a chunk")
                 .defineInRange("Variety per chunk", 1, 0, Integer.MAX_VALUE);
