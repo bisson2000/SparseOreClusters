@@ -75,18 +75,19 @@ public class SparseOreClustersConfig {
         k = Math.max(0, Math.min(k, placedFeatureList.size()));
 
         // Set up weight list
+        // The weight list is initialized
         ArrayList<Double> weightList = new ArrayList<>(placedFeatureList.size());
         for (Holder<PlacedFeature> placedFeature : placedFeatureList) {
+            double newWeight = DEFAULT_WEIGHT;
             if (placedFeature.unwrapKey().isPresent()) {
                 String searchedLocation =  placedFeature.unwrapKey().get().location().toString();
-                weightList.add(configuredWeights.getOrDefault(searchedLocation, DEFAULT_WEIGHT));
-            } else {
-                weightList.add(DEFAULT_WEIGHT);
+                newWeight = configuredWeights.getOrDefault(searchedLocation, DEFAULT_WEIGHT);
             }
+            weightList.add(-1.0 * Math.pow(randomSource.nextDouble(), 1.0 / newWeight));
         }
 
         // shuffle
-        placedFeatureList = ModRandomExtension.weightedShuffle(randomSource, placedFeatureList, weightList);
+        placedFeatureList = ModRandomExtension.weightedShuffle(placedFeatureList, weightList);
         return placedFeatureList.subList(0, k);
     }
 
