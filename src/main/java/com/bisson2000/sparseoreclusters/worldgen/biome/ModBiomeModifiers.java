@@ -3,6 +3,7 @@ package com.bisson2000.sparseoreclusters.worldgen.biome;
 import com.bisson2000.sparseoreclusters.SparseOreClusters;
 import com.bisson2000.sparseoreclusters.config.SparseOreClustersConfig;
 import com.bisson2000.sparseoreclusters.worldgen.placement.CenterChunkPlacement;
+import com.bisson2000.sparseoreclusters.worldgen.placement.SpreadFilter;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -58,7 +59,7 @@ public class ModBiomeModifiers {
                         boolean allowed = false;
                         for (PlacementModifier placementModifier : placedFeatureHolder.value().placement()) {
                             // This placed feature contains the placement we are filtering with, add it to the list
-                            if (placementModifier instanceof CenterChunkPlacement) {
+                            if (placementModifier instanceof SpreadFilter) {
                                 allowed = true;
                                 break;
                             }
