@@ -1,6 +1,14 @@
 
+Sparse Ore Clusters
+=======
+<a href="https://www.curseforge.com/minecraft/mc-mods/sparse-ore-clusters" target="_blank"><img src="https://cf.way2muchnoise.eu/1263960.svg?badge_style=flat"/></a><a href="https://www.curseforge.com/minecraft/mc-mods/sparse-ore-clusters" target="_blank"><img src="http://cf.way2muchnoise.eu/versions/1263960.svg?badge_style=flat" /></a>
+
+![logo](gallery/logo.png)
+
+
 Where can I find and download the mod?
 =======
+You can find the mod on CurseForge: https://www.curseforge.com/minecraft/mc-mods/sparse-ore-clusters
 
 DEV Installation information
 =======
